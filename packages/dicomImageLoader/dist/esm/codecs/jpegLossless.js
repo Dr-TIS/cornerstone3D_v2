@@ -1,31 +1,24 @@
-var __defProp = Object.defineProperty;
-var __export = (target, all) => {
-    for (var name in all) {
-        __defProp(target, name, { get: all[name], enumerable: true });
+var S = Object.defineProperty;
+var A = (a, t) => {
+    for (var e in t) {
+        S(a, e, { get: t[e], enumerable: !0 });
     }
 };
-var ComponentSpec = {
-    hSamp: 0,
-    quantTableSel: 0,
-    vSamp: 0,
-};
-var DataStream = class {
-    constructor(data, offset, length) {
-        this.buffer = new Uint8Array(data, offset, length);
-        this.index = 0;
+var w = { hSamp: 0, quantTableSel: 0, vSamp: 0 };
+var b = class {
+    constructor(t, e, r) {
+        (this.buffer = new Uint8Array(t, e, r)), (this.index = 0);
     }
     get16() {
-        const value = (this.buffer[this.index] << 8) + this.buffer[this.index + 1];
-        this.index += 2;
-        return value;
+        let t = (this.buffer[this.index] << 8) + this.buffer[this.index + 1];
+        return (this.index += 2), t;
     }
     get8() {
-        const value = this.buffer[this.index];
-        this.index += 1;
-        return value;
+        let t = this.buffer[this.index];
+        return (this.index += 1), t;
     }
 };
-var FrameHeader = class {
+var x = class {
     constructor() {
         this.dimX = 0;
         this.dimY = 0;
@@ -33,270 +26,219 @@ var FrameHeader = class {
         this.precision = 0;
         this.components = [];
     }
-    read(data) {
-        let count = 0;
-        let temp;
-        const length = data.get16();
-        count += 2;
-        this.precision = data.get8();
-        count += 1;
-        this.dimY = data.get16();
-        count += 2;
-        this.dimX = data.get16();
-        count += 2;
-        this.numComp = data.get8();
-        count += 1;
-        for (let i = 1; i <= this.numComp; i += 1) {
-            if (count > length) {
+    read(t) {
+        let e = 0, r, o = t.get16();
+        (e += 2),
+            (this.precision = t.get8()),
+            (e += 1),
+            (this.dimY = t.get16()),
+            (e += 2),
+            (this.dimX = t.get16()),
+            (e += 2),
+            (this.numComp = t.get8()),
+            (e += 1);
+        for (let s = 1; s <= this.numComp; s += 1) {
+            if (e > o) {
                 throw new Error('ERROR: frame format error');
             }
-            const c = data.get8();
-            count += 1;
-            if (count >= length) {
+            let i = t.get8();
+            if (((e += 1), e >= o)) {
                 throw new Error('ERROR: frame format error [c>=Lf]');
             }
-            temp = data.get8();
-            count += 1;
-            if (!this.components[c]) {
-                this.components[c] = { ...ComponentSpec };
-            }
-            this.components[c].hSamp = temp >> 4;
-            this.components[c].vSamp = temp & 15;
-            this.components[c].quantTableSel = data.get8();
-            count += 1;
+            (r = t.get8()),
+                (e += 1),
+                this.components[i] || (this.components[i] = { ...w }),
+                (this.components[i].hSamp = r >> 4),
+                (this.components[i].vSamp = r & 15),
+                (this.components[i].quantTableSel = t.get8()),
+                (e += 1);
         }
-        if (count !== length) {
+        if (e !== o) {
             throw new Error('ERROR: frame format error [Lf!=count]');
         }
         return 1;
     }
 };
-var utils_exports = {};
-__export(utils_exports, {
-    crc32: () => crc32,
-    crcTable: () => crcTable,
-    createArray: () => createArray,
-    makeCRCTable: () => makeCRCTable,
+var k = {};
+A(k, {
+    crc32: () => L,
+    crcTable: () => T,
+    createArray: () => c,
+    makeCRCTable: () => y,
 });
-var createArray = (...dimensions) => {
-    if (dimensions.length > 1) {
-        const dim = dimensions[0];
-        const rest = dimensions.slice(1);
-        const newArray = [];
-        for (let i = 0; i < dim; i++) {
-            newArray[i] = createArray(...rest);
+var c = (...a) => {
+    if (a.length > 1) {
+        let t = a[0], e = a.slice(1), r = [];
+        for (let o = 0; o < t; o++) {
+            r[o] = c(...e);
         }
-        return newArray;
+        return r;
     }
     else {
-        return Array(dimensions[0]).fill(void 0);
+        return Array(a[0]).fill(void 0);
     }
-};
-var makeCRCTable = function () {
-    let c;
-    const crcTable2 = [];
-    for (let n = 0; n < 256; n++) {
-        c = n;
-        for (let k = 0; k < 8; k++) {
-            c = c & 1 ? 3988292384 ^ (c >>> 1) : c >>> 1;
+}, y = function () {
+    let a, t = [];
+    for (let e = 0; e < 256; e++) {
+        a = e;
+        for (let r = 0; r < 8; r++) {
+            a = a & 1 ? 3988292384 ^ (a >>> 1) : a >>> 1;
         }
-        crcTable2[n] = c;
+        t[e] = a;
     }
-    return crcTable2;
-};
-var crcTable = makeCRCTable();
-var crc32 = function (buffer) {
-    const uint8view = new Uint8Array(buffer);
-    let crc = 0 ^ -1;
-    for (let i = 0; i < uint8view.length; i++) {
-        crc = (crc >>> 8) ^ crcTable[(crc ^ uint8view[i]) & 255];
+    return t;
+}, T = y(), L = function (a) {
+    let t = new Uint8Array(a), e = -1;
+    for (let r = 0; r < t.length; r++) {
+        e = (e >>> 8) ^ T[(e ^ t[r]) & 255];
     }
-    return (crc ^ -1) >>> 0;
+    return (e ^ -1) >>> 0;
 };
-var HuffmanTable = class _HuffmanTable {
+var p = class a {
     static { this.MSB = 2147483648; }
     constructor() {
-        this.l = createArray(4, 2, 16);
-        this.th = [0, 0, 0, 0];
-        this.v = createArray(4, 2, 16, 200);
-        this.tc = [
-            [0, 0],
-            [0, 0],
-            [0, 0],
-            [0, 0],
-        ];
+        (this.l = c(4, 2, 16)),
+            (this.th = [0, 0, 0, 0]),
+            (this.v = c(4, 2, 16, 200)),
+            (this.tc = [
+                [0, 0],
+                [0, 0],
+                [0, 0],
+                [0, 0],
+            ]);
     }
-    read(data, HuffTab) {
-        let count = 0;
-        let temp;
-        let t;
-        let c;
-        let i;
-        let j;
-        const length = data.get16();
-        count += 2;
-        while (count < length) {
-            temp = data.get8();
-            count += 1;
-            t = temp & 15;
-            if (t > 3) {
+    read(t, e) {
+        let r = 0, o, s, i, n, f, u = t.get16();
+        for (r += 2; r < u;) {
+            if (((o = t.get8()), (r += 1), (s = o & 15), s > 3)) {
                 throw new Error('ERROR: Huffman table ID > 3');
             }
-            c = temp >> 4;
-            if (c > 2) {
+            if (((i = o >> 4), i > 2)) {
                 throw new Error('ERROR: Huffman table [Table class > 2 ]');
             }
-            this.th[t] = 1;
-            this.tc[t][c] = 1;
-            for (i = 0; i < 16; i += 1) {
-                this.l[t][c][i] = data.get8();
-                count += 1;
+            for (this.th[s] = 1, this.tc[s][i] = 1, n = 0; n < 16; n += 1) {
+                (this.l[s][i][n] = t.get8()), (r += 1);
             }
-            for (i = 0; i < 16; i += 1) {
-                for (j = 0; j < this.l[t][c][i]; j += 1) {
-                    if (count > length) {
+            for (n = 0; n < 16; n += 1) {
+                for (f = 0; f < this.l[s][i][n]; f += 1) {
+                    if (r > u) {
                         throw new Error('ERROR: Huffman table format error [count>Lh]');
                     }
-                    this.v[t][c][i][j] = data.get8();
-                    count += 1;
+                    (this.v[s][i][n][f] = t.get8()), (r += 1);
                 }
             }
         }
-        if (count !== length) {
+        if (r !== u) {
             throw new Error('ERROR: Huffman table format error [count!=Lf]');
         }
-        for (i = 0; i < 4; i += 1) {
-            for (j = 0; j < 2; j += 1) {
-                if (this.tc[i][j] !== 0) {
-                    this.buildHuffTable(HuffTab[i][j], this.l[i][j], this.v[i][j]);
-                }
+        for (n = 0; n < 4; n += 1) {
+            for (f = 0; f < 2; f += 1) {
+                this.tc[n][f] !== 0 &&
+                    this.buildHuffTable(e[n][f], this.l[n][f], this.v[n][f]);
             }
         }
         return 1;
     }
-    buildHuffTable(tab, L, V) {
-        let currentTable, k, i, j, n;
-        const temp = 256;
-        k = 0;
-        for (i = 0; i < 8; i += 1) {
-            for (j = 0; j < L[i]; j += 1) {
-                for (n = 0; n < temp >> (i + 1); n += 1) {
-                    tab[k] = V[i][j] | ((i + 1) << 8);
-                    k += 1;
+    buildHuffTable(t, e, r) {
+        let o, s, i, n, f;
+        for (s = 0, i = 0; i < 8; i += 1) {
+            for (n = 0; n < e[i]; n += 1) {
+                for (f = 0; f < 256 >> (i + 1); f += 1) {
+                    (t[s] = r[i][n] | ((i + 1) << 8)), (s += 1);
                 }
             }
         }
-        for (i = 1; k < 256; i += 1, k += 1) {
-            tab[k] = i | _HuffmanTable.MSB;
+        for (i = 1; s < 256; i += 1, s += 1) {
+            t[s] = i | a.MSB;
         }
-        currentTable = 1;
-        k = 0;
-        for (i = 8; i < 16; i += 1) {
-            for (j = 0; j < L[i]; j += 1) {
-                for (n = 0; n < temp >> (i - 7); n += 1) {
-                    tab[currentTable * 256 + k] = V[i][j] | ((i + 1) << 8);
-                    k += 1;
+        for (o = 1, s = 0, i = 8; i < 16; i += 1) {
+            for (n = 0; n < e[i]; n += 1) {
+                for (f = 0; f < 256 >> (i - 7); f += 1) {
+                    (t[o * 256 + s] = r[i][n] | ((i + 1) << 8)), (s += 1);
                 }
-                if (k >= 256) {
-                    if (k > 256) {
+                if (s >= 256) {
+                    if (s > 256) {
                         throw new Error('ERROR: Huffman table error(1)!');
                     }
-                    k = 0;
-                    currentTable += 1;
+                    (s = 0), (o += 1);
                 }
             }
         }
     }
 };
-var QuantizationTable = class _QuantizationTable {
+var d = class a {
     constructor() {
         this.precision = [];
         this.tq = [0, 0, 0, 0];
-        this.quantTables = createArray(4, 64);
+        this.quantTables = c(4, 64);
     }
-    static { this.enhanceQuantizationTable = function (qtab, table) {
-        for (let i = 0; i < 8; i += 1) {
-            qtab[table[0 * 8 + i]] *= 90;
-            qtab[table[4 * 8 + i]] *= 90;
-            qtab[table[2 * 8 + i]] *= 118;
-            qtab[table[6 * 8 + i]] *= 49;
-            qtab[table[5 * 8 + i]] *= 71;
-            qtab[table[1 * 8 + i]] *= 126;
-            qtab[table[7 * 8 + i]] *= 25;
-            qtab[table[3 * 8 + i]] *= 106;
+    static { this.enhanceQuantizationTable = function (t, e) {
+        for (let r = 0; r < 8; r += 1) {
+            (t[e[0 * 8 + r]] *= 90),
+                (t[e[4 * 8 + r]] *= 90),
+                (t[e[2 * 8 + r]] *= 118),
+                (t[e[6 * 8 + r]] *= 49),
+                (t[e[5 * 8 + r]] *= 71),
+                (t[e[1 * 8 + r]] *= 126),
+                (t[e[7 * 8 + r]] *= 25),
+                (t[e[3 * 8 + r]] *= 106);
         }
-        for (let i = 0; i < 8; i += 1) {
-            qtab[table[0 + 8 * i]] *= 90;
-            qtab[table[4 + 8 * i]] *= 90;
-            qtab[table[2 + 8 * i]] *= 118;
-            qtab[table[6 + 8 * i]] *= 49;
-            qtab[table[5 + 8 * i]] *= 71;
-            qtab[table[1 + 8 * i]] *= 126;
-            qtab[table[7 + 8 * i]] *= 25;
-            qtab[table[3 + 8 * i]] *= 106;
+        for (let r = 0; r < 8; r += 1) {
+            (t[e[0 + 8 * r]] *= 90),
+                (t[e[4 + 8 * r]] *= 90),
+                (t[e[2 + 8 * r]] *= 118),
+                (t[e[6 + 8 * r]] *= 49),
+                (t[e[5 + 8 * r]] *= 71),
+                (t[e[1 + 8 * r]] *= 126),
+                (t[e[7 + 8 * r]] *= 25),
+                (t[e[3 + 8 * r]] *= 106);
         }
-        for (let i = 0; i < 64; i += 1) {
-            qtab[i] >>= 6;
+        for (let r = 0; r < 64; r += 1) {
+            t[r] >>= 6;
         }
     }; }
-    read(data, table) {
-        let count = 0;
-        let temp;
-        let t;
-        let i;
-        const length = data.get16();
-        count += 2;
-        while (count < length) {
-            temp = data.get8();
-            count += 1;
-            t = temp & 15;
-            if (t > 3) {
+    read(t, e) {
+        let r = 0, o, s, i, n = t.get16();
+        for (r += 2; r < n;) {
+            if (((o = t.get8()), (r += 1), (s = o & 15), s > 3)) {
                 throw new Error('ERROR: Quantization table ID > 3');
             }
-            this.precision[t] = temp >> 4;
-            if (this.precision[t] === 0) {
-                this.precision[t] = 8;
+            if (((this.precision[s] = o >> 4), this.precision[s] === 0)) {
+                this.precision[s] = 8;
             }
-            else if (this.precision[t] === 1) {
-                this.precision[t] = 16;
+            else if (this.precision[s] === 1) {
+                this.precision[s] = 16;
             }
             else {
                 throw new Error('ERROR: Quantization table precision error');
             }
-            this.tq[t] = 1;
-            if (this.precision[t] === 8) {
+            if (((this.tq[s] = 1), this.precision[s] === 8)) {
                 for (i = 0; i < 64; i += 1) {
-                    if (count > length) {
+                    if (r > n) {
                         throw new Error('ERROR: Quantization table format error');
                     }
-                    this.quantTables[t][i] = data.get8();
-                    count += 1;
+                    (this.quantTables[s][i] = t.get8()), (r += 1);
                 }
-                _QuantizationTable.enhanceQuantizationTable(this.quantTables[t], table);
+                a.enhanceQuantizationTable(this.quantTables[s], e);
             }
             else {
                 for (i = 0; i < 64; i += 1) {
-                    if (count > length) {
+                    if (r > n) {
                         throw new Error('ERROR: Quantization table format error');
                     }
-                    this.quantTables[t][i] = data.get16();
-                    count += 2;
+                    (this.quantTables[s][i] = t.get16()), (r += 2);
                 }
-                _QuantizationTable.enhanceQuantizationTable(this.quantTables[t], table);
+                a.enhanceQuantizationTable(this.quantTables[s], e);
             }
         }
-        if (count !== length) {
+        if (r !== n) {
             throw new Error('ERROR: Quantization table error [count!=Lq]');
         }
         return 1;
     }
 };
-var ScanComponent = {
-    acTabSel: 0,
-    dcTabSel: 0,
-    scanCompSel: 0,
-};
-var ScanHeader = class {
+var R = { acTabSel: 0, dcTabSel: 0, scanCompSel: 0 };
+var g = class {
     constructor() {
         this.ah = 0;
         this.al = 0;
@@ -305,76 +247,67 @@ var ScanHeader = class {
         this.spectralEnd = 0;
         this.components = [];
     }
-    read(data) {
-        let count = 0;
-        let i;
-        let temp;
-        const length = data.get16();
-        count += 2;
-        this.numComp = data.get8();
-        count += 1;
-        for (i = 0; i < this.numComp; i += 1) {
-            this.components[i] = { ...ScanComponent };
-            if (count > length) {
+    read(t) {
+        let e = 0, r, o, s = t.get16();
+        for (e += 2, this.numComp = t.get8(), e += 1, r = 0; r < this.numComp; r += 1) {
+            if (((this.components[r] = { ...R }), e > s)) {
                 throw new Error('ERROR: scan header format error');
             }
-            this.components[i].scanCompSel = data.get8();
-            count += 1;
-            temp = data.get8();
-            count += 1;
-            this.components[i].dcTabSel = temp >> 4;
-            this.components[i].acTabSel = temp & 15;
+            (this.components[r].scanCompSel = t.get8()),
+                (e += 1),
+                (o = t.get8()),
+                (e += 1),
+                (this.components[r].dcTabSel = o >> 4),
+                (this.components[r].acTabSel = o & 15);
         }
-        this.selection = data.get8();
-        count += 1;
-        this.spectralEnd = data.get8();
-        count += 1;
-        temp = data.get8();
-        this.ah = temp >> 4;
-        this.al = temp & 15;
-        count += 1;
-        if (count !== length) {
+        if (((this.selection = t.get8()),
+            (e += 1),
+            (this.spectralEnd = t.get8()),
+            (e += 1),
+            (o = t.get8()),
+            (this.ah = o >> 4),
+            (this.al = o & 15),
+            (e += 1),
+            e !== s)) {
             throw new Error('ERROR: scan header format error [count!=Ns]');
         }
         return 1;
     }
 };
-var littleEndian = (function () {
-    const buffer = new ArrayBuffer(2);
-    new DataView(buffer).setInt16(0, 256, true);
-    return new Int16Array(buffer)[0] === 256;
-})();
-var Decoder = class _Decoder {
+var D = (function () {
+    let a = new ArrayBuffer(2);
+    return new DataView(a).setInt16(0, 256, !0), new Int16Array(a)[0] === 256;
+})(), E = class a {
     static { this.IDCT_P = [
-        0, 5, 40, 16, 45, 2, 7, 42, 21, 56, 8, 61, 18, 47, 1, 4, 41, 23, 58, 13, 32,
-        24, 37, 10, 63, 17, 44, 3, 6, 43, 20, 57, 15, 34, 29, 48, 53, 26, 39, 9, 60,
-        19, 46, 22, 59, 12, 33, 31, 50, 55, 25, 36, 11, 62, 14, 35, 28, 49, 52, 27,
-        38, 30, 51, 54,
+        0, 5, 40, 16, 45, 2, 7, 42, 21, 56, 8, 61, 18, 47, 1, 4, 41, 23, 58, 13,
+        32, 24, 37, 10, 63, 17, 44, 3, 6, 43, 20, 57, 15, 34, 29, 48, 53, 26, 39,
+        9, 60, 19, 46, 22, 59, 12, 33, 31, 50, 55, 25, 36, 11, 62, 14, 35, 28, 49,
+        52, 27, 38, 30, 51, 54,
     ]; }
     static { this.TABLE = [
         0, 1, 5, 6, 14, 15, 27, 28, 2, 4, 7, 13, 16, 26, 29, 42, 3, 8, 12, 17, 25,
         30, 41, 43, 9, 11, 18, 24, 31, 40, 44, 53, 10, 19, 23, 32, 39, 45, 52, 54,
-        20, 22, 33, 38, 46, 51, 55, 60, 21, 34, 37, 47, 50, 56, 59, 61, 35, 36, 48,
-        49, 57, 58, 62, 63,
+        20, 22, 33, 38, 46, 51, 55, 60, 21, 34, 37, 47, 50, 56, 59, 61, 35, 36,
+        48, 49, 57, 58, 62, 63,
     ]; }
     static { this.MAX_HUFFMAN_SUBTREE = 50; }
     static { this.MSB = 2147483648; }
     static { this.RESTART_MARKER_BEGIN = 65488; }
     static { this.RESTART_MARKER_END = 65495; }
-    constructor(buffer, numBytes) {
+    constructor(t, e) {
         this.buffer = null;
         this.stream = null;
-        this.frame = new FrameHeader();
-        this.huffTable = new HuffmanTable();
-        this.quantTable = new QuantizationTable();
-        this.scan = new ScanHeader();
-        this.DU = createArray(10, 4, 64);
-        this.HuffTab = createArray(4, 2, 50 * 256);
+        this.frame = new x();
+        this.huffTable = new p();
+        this.quantTable = new d();
+        this.scan = new g();
+        this.DU = c(10, 4, 64);
+        this.HuffTab = c(4, 2, 50 * 256);
         this.IDCT_Source = [];
         this.nBlock = [];
-        this.acTab = createArray(10, 1);
-        this.dcTab = createArray(10, 1);
-        this.qTab = createArray(10, 1);
+        this.acTab = c(10, 1);
+        this.dcTab = c(10, 1);
+        this.qTab = c(10, 1);
         this.marker = 0;
         this.markerIndex = 0;
         this.numComp = 0;
@@ -385,7 +318,7 @@ var Decoder = class _Decoder {
         this.xLoc = 0;
         this.yLoc = 0;
         this.outputData = null;
-        this.restarting = false;
+        this.restarting = !1;
         this.mask = 0;
         this.numBytes = 0;
         this.precision = void 0;
@@ -394,45 +327,32 @@ var Decoder = class _Decoder {
         this.setter = null;
         this.output = null;
         this.selector = null;
-        this.buffer = buffer ?? null;
-        this.numBytes = numBytes ?? 0;
+        (this.buffer = t ?? null), (this.numBytes = e ?? 0);
     }
-    decompress(buffer, offset, length) {
-        const result = this.decode(buffer, offset, length);
-        return result.buffer;
+    decompress(t, e, r) {
+        return this.decode(t, e, r).buffer;
     }
-    decode(buffer, offset, length, numBytes) {
-        let scanNum = 0;
-        const pred = [];
-        let i;
-        let compN;
-        const temp = [];
-        const index = [];
-        let mcuNum;
-        if (buffer) {
-            this.buffer = buffer;
-        }
-        if (numBytes !== void 0) {
-            this.numBytes = numBytes;
-        }
-        this.stream = new DataStream(this.buffer, offset, length);
-        this.buffer = null;
-        this.xLoc = 0;
-        this.yLoc = 0;
-        let current = this.stream.get16();
-        if (current !== 65496) {
+    decode(t, e, r, o) {
+        let s = 0, i = [], n, f, u = [], l = [], m;
+        t && (this.buffer = t),
+            o !== void 0 && (this.numBytes = o),
+            (this.stream = new b(this.buffer, e, r)),
+            (this.buffer = null),
+            (this.xLoc = 0),
+            (this.yLoc = 0);
+        let h = this.stream.get16();
+        if (h !== 65496) {
             throw new Error('Not a JPEG file');
         }
-        current = this.stream.get16();
-        while (current >> 4 !== 4092 || current === 65476) {
-            switch (current) {
+        for (h = this.stream.get16(); h >> 4 !== 4092 || h === 65476;) {
+            switch (h) {
                 case 65476:
                     this.huffTable.read(this.stream, this.HuffTab);
                     break;
                 case 65484:
                     throw new Error("Program doesn't support arithmetic coding. (format throw new IOException)");
                 case 65499:
-                    this.quantTable.read(this.stream, _Decoder.TABLE);
+                    this.quantTable.read(this.stream, a.TABLE);
                     break;
                 case 65501:
                     this.restartInterval = this.readNumber() ?? 0;
@@ -459,27 +379,26 @@ var Decoder = class _Decoder {
                     this.readComment();
                     break;
                 default:
-                    if (current >> 8 !== 255) {
+                    if (h >> 8 !== 255) {
                         throw new Error('ERROR: format throw new IOException! (decode)');
                     }
             }
-            current = this.stream.get16();
+            h = this.stream.get16();
         }
-        if (current < 65472 || current > 65479) {
+        if (h < 65472 || h > 65479) {
             throw new Error('ERROR: could not handle arithmetic code!');
         }
-        this.frame.read(this.stream);
-        current = this.stream.get16();
+        this.frame.read(this.stream), (h = this.stream.get16());
         do {
-            while (current !== 65498) {
-                switch (current) {
+            for (; h !== 65498;) {
+                switch (h) {
                     case 65476:
                         this.huffTable.read(this.stream, this.HuffTab);
                         break;
                     case 65484:
                         throw new Error("Program doesn't support arithmetic coding. (format throw new IOException)");
                     case 65499:
-                        this.quantTable.read(this.stream, _Decoder.TABLE);
+                        this.quantTable.read(this.stream, a.TABLE);
                         break;
                     case 65501:
                         this.restartInterval = this.readNumber() ?? 0;
@@ -506,44 +425,32 @@ var Decoder = class _Decoder {
                         this.readComment();
                         break;
                     default:
-                        if (current >> 8 !== 255) {
+                        if (h >> 8 !== 255) {
                             throw new Error('ERROR: format throw new IOException! (Parser.decode)');
                         }
                 }
-                current = this.stream.get16();
+                h = this.stream.get16();
             }
-            this.precision = this.frame.precision;
-            this.components = this.frame.components;
-            if (!this.numBytes) {
-                this.numBytes = Math.round(Math.ceil(this.precision / 8));
-            }
-            if (this.numBytes === 1) {
-                this.mask = 255;
-            }
-            else {
-                this.mask = 65535;
-            }
-            this.scan.read(this.stream);
-            this.numComp = this.scan.numComp;
-            this.selection = this.scan.selection;
-            if (this.numBytes === 1) {
-                if (this.numComp === 3) {
-                    this.getter = this.getValueRGB;
-                    this.setter = this.setValueRGB;
-                    this.output = this.outputRGB;
-                }
-                else {
-                    this.getter = this.getValue8;
-                    this.setter = this.setValue8;
-                    this.output = this.outputSingle;
-                }
-            }
-            else {
-                this.getter = this.getValue8;
-                this.setter = this.setValue8;
-                this.output = this.outputSingle;
-            }
-            switch (this.selection) {
+            switch (((this.precision = this.frame.precision),
+                (this.components = this.frame.components),
+                this.numBytes ||
+                    (this.numBytes = Math.round(Math.ceil(this.precision / 8))),
+                this.numBytes === 1 ? (this.mask = 255) : (this.mask = 65535),
+                this.scan.read(this.stream),
+                (this.numComp = this.scan.numComp),
+                (this.selection = this.scan.selection),
+                this.numBytes === 1
+                    ? this.numComp === 3
+                        ? ((this.getter = this.getValueRGB),
+                            (this.setter = this.setValueRGB),
+                            (this.output = this.outputRGB))
+                        : ((this.getter = this.getValue8),
+                            (this.setter = this.setValue8),
+                            (this.output = this.outputSingle))
+                    : ((this.getter = this.getValue8),
+                        (this.setter = this.setValue8),
+                        (this.output = this.outputSingle)),
+                this.selection)) {
                 case 2:
                     this.selector = this.select2;
                     break;
@@ -566,1451 +473,336 @@ var Decoder = class _Decoder {
                     this.selector = this.select1;
                     break;
             }
-            for (i = 0; i < this.numComp; i += 1) {
-                compN = this.scan.components[i].scanCompSel;
-                this.qTab[i] =
-                    this.quantTable.quantTables[this.components[compN].quantTableSel];
-                this.nBlock[i] =
-                    this.components[compN].vSamp * this.components[compN].hSamp;
-                this.dcTab[i] = this.HuffTab[this.scan.components[i].dcTabSel][0];
-                this.acTab[i] = this.HuffTab[this.scan.components[i].acTabSel][1];
+            for (n = 0; n < this.numComp; n += 1) {
+                (f = this.scan.components[n].scanCompSel),
+                    (this.qTab[n] =
+                        this.quantTable.quantTables[this.components[f].quantTableSel]),
+                    (this.nBlock[n] =
+                        this.components[f].vSamp * this.components[f].hSamp),
+                    (this.dcTab[n] = this.HuffTab[this.scan.components[n].dcTabSel][0]),
+                    (this.acTab[n] = this.HuffTab[this.scan.components[n].acTabSel][1]);
             }
-            this.xDim = this.frame.dimX;
-            this.yDim = this.frame.dimY;
-            if (this.numBytes === 1) {
-                this.outputData = new Uint8Array(new ArrayBuffer(this.xDim * this.yDim * this.numBytes * this.numComp));
-            }
-            else {
-                this.outputData = new Uint16Array(new ArrayBuffer(this.xDim * this.yDim * this.numBytes * this.numComp));
-            }
-            scanNum += 1;
-            while (true) {
-                temp[0] = 0;
-                index[0] = 0;
-                for (i = 0; i < 10; i += 1) {
-                    pred[i] = 1 << (this.precision - 1);
+            for (this.xDim = this.frame.dimX,
+                this.yDim = this.frame.dimY,
+                this.numBytes === 1
+                    ? (this.outputData = new Uint8Array(new ArrayBuffer(this.xDim * this.yDim * this.numBytes * this.numComp)))
+                    : (this.outputData = new Uint16Array(new ArrayBuffer(this.xDim * this.yDim * this.numBytes * this.numComp))),
+                s += 1;;) {
+                for (u[0] = 0, l[0] = 0, n = 0; n < 10; n += 1) {
+                    i[n] = 1 << (this.precision - 1);
                 }
                 if (this.restartInterval === 0) {
-                    current = this.decodeUnit(pred, temp, index);
-                    while (current === 0 &&
-                        this.xLoc < this.xDim &&
-                        this.yLoc < this.yDim) {
-                        this.output(pred);
-                        current = this.decodeUnit(pred, temp, index);
+                    for (h = this.decodeUnit(i, u, l); h === 0 && this.xLoc < this.xDim && this.yLoc < this.yDim;) {
+                        this.output(i), (h = this.decodeUnit(i, u, l));
                     }
                     break;
                 }
-                for (mcuNum = 0; mcuNum < this.restartInterval; mcuNum += 1) {
-                    this.restarting = mcuNum === 0;
-                    current = this.decodeUnit(pred, temp, index);
-                    this.output(pred);
-                    if (current !== 0) {
+                for (m = 0; m < this.restartInterval &&
+                    ((this.restarting = m === 0),
+                        (h = this.decodeUnit(i, u, l)),
+                        this.output(i),
+                        h === 0); m += 1) {
+                    let foo = 1;
+                }
+                if ((h === 0 &&
+                    (this.markerIndex !== 0
+                        ? ((h = 65280 | this.marker), (this.markerIndex = 0))
+                        : (h = this.stream.get16())),
+                    !(h >= a.RESTART_MARKER_BEGIN && h <= a.RESTART_MARKER_END))) {
+                    break;
+                }
+            }
+            h === 65500 &&
+                s === 1 &&
+                (this.readNumber(), (h = this.stream.get16()));
+        } while (h !== 65497 &&
+            this.xLoc < this.xDim &&
+            this.yLoc < this.yDim &&
+            s === 0);
+        return this.outputData;
+    }
+    decodeUnit(t, e, r) {
+        return this.numComp === 1
+            ? this.decodeSingle(t, e, r)
+            : this.numComp === 3
+                ? this.decodeRGB(t, e, r)
+                : -1;
+    }
+    select1(t) {
+        return this.getPreviousX(t);
+    }
+    select2(t) {
+        return this.getPreviousY(t);
+    }
+    select3(t) {
+        return this.getPreviousXY(t);
+    }
+    select4(t) {
+        return (this.getPreviousX(t) + this.getPreviousY(t) - this.getPreviousXY(t));
+    }
+    select5(t) {
+        return (this.getPreviousX(t) +
+            ((this.getPreviousY(t) - this.getPreviousXY(t)) >> 1));
+    }
+    select6(t) {
+        return (this.getPreviousY(t) +
+            ((this.getPreviousX(t) - this.getPreviousXY(t)) >> 1));
+    }
+    select7(t) {
+        return (this.getPreviousX(t) + this.getPreviousY(t)) / 2;
+    }
+    decodeRGB(t, e, r) {
+        if (this.selector === null) {
+            throw new Error("decode hasn't run yet");
+        }
+        let o, s, i, n, f, u, l;
+        for (t[0] = this.selector(0),
+            t[1] = this.selector(1),
+            t[2] = this.selector(2),
+            n = 0; n < this.numComp; n += 1) {
+            for (i = this.qTab[n], o = this.acTab[n], s = this.dcTab[n], f = 0; f < this.nBlock[n]; f += 1) {
+                for (u = 0; u < this.IDCT_Source.length; u += 1) {
+                    this.IDCT_Source[u] = 0;
+                }
+                let m = this.getHuffmanValue(s, e, r);
+                if (m >= 65280) {
+                    return m;
+                }
+                for (t[n] = this.IDCT_Source[0] = t[n] + this.getn(r, m, e, r),
+                    this.IDCT_Source[0] *= i[0],
+                    l = 1; l < 64; l += 1) {
+                    if (((m = this.getHuffmanValue(o, e, r)), m >= 65280)) {
+                        return m;
+                    }
+                    if (((l += m >> 4), m & 15)) {
+                        this.IDCT_Source[a.IDCT_P[l]] = this.getn(r, m & 15, e, r) * i[l];
+                    }
+                    else if (!(m >> 4)) {
                         break;
                     }
                 }
-                if (current === 0) {
-                    if (this.markerIndex !== 0) {
-                        current = 65280 | this.marker;
-                        this.markerIndex = 0;
-                    }
-                    else {
-                        current = this.stream.get16();
-                    }
-                }
-                if (!(current >= _Decoder.RESTART_MARKER_BEGIN &&
-                    current <= _Decoder.RESTART_MARKER_END)) {
-                    break;
-                }
-            }
-            if (current === 65500 && scanNum === 1) {
-                this.readNumber();
-                current = this.stream.get16();
-            }
-        } while (current !== 65497 &&
-            this.xLoc < this.xDim &&
-            this.yLoc < this.yDim &&
-            scanNum === 0);
-        return this.outputData;
-    }
-    decodeUnit(prev, temp, index) {
-        if (this.numComp === 1) {
-            return this.decodeSingle(prev, temp, index);
-        }
-        else if (this.numComp === 3) {
-            return this.decodeRGB(prev, temp, index);
-        }
-        else {
-            return -1;
-        }
-    }
-    select1(compOffset) {
-        return this.getPreviousX(compOffset);
-    }
-    select2(compOffset) {
-        return this.getPreviousY(compOffset);
-    }
-    select3(compOffset) {
-        return this.getPreviousXY(compOffset);
-    }
-    select4(compOffset) {
-        return (this.getPreviousX(compOffset) +
-            this.getPreviousY(compOffset) -
-            this.getPreviousXY(compOffset));
-    }
-    select5(compOffset) {
-        return (this.getPreviousX(compOffset) +
-            ((this.getPreviousY(compOffset) - this.getPreviousXY(compOffset)) >> 1));
-    }
-    select6(compOffset) {
-        return (this.getPreviousY(compOffset) +
-            ((this.getPreviousX(compOffset) - this.getPreviousXY(compOffset)) >> 1));
-    }
-    select7(compOffset) {
-        return (this.getPreviousX(compOffset) + this.getPreviousY(compOffset)) / 2;
-    }
-    decodeRGB(prev, temp, index) {
-        if (this.selector === null) {
-            throw new Error("decode hasn't run yet");
-        }
-        let actab, dctab, qtab, ctrC, i, k, j;
-        prev[0] = this.selector(0);
-        prev[1] = this.selector(1);
-        prev[2] = this.selector(2);
-        for (ctrC = 0; ctrC < this.numComp; ctrC += 1) {
-            qtab = this.qTab[ctrC];
-            actab = this.acTab[ctrC];
-            dctab = this.dcTab[ctrC];
-            for (i = 0; i < this.nBlock[ctrC]; i += 1) {
-                for (k = 0; k < this.IDCT_Source.length; k += 1) {
-                    this.IDCT_Source[k] = 0;
-                }
-                let value = this.getHuffmanValue(dctab, temp, index);
-                if (value >= 65280) {
-                    return value;
-                }
-                prev[ctrC] = this.IDCT_Source[0] =
-                    prev[ctrC] + this.getn(index, value, temp, index);
-                this.IDCT_Source[0] *= qtab[0];
-                for (j = 1; j < 64; j += 1) {
-                    value = this.getHuffmanValue(actab, temp, index);
-                    if (value >= 65280) {
-                        return value;
-                    }
-                    j += value >> 4;
-                    if ((value & 15) === 0) {
-                        if (value >> 4 === 0) {
-                            break;
-                        }
-                    }
-                    else {
-                        this.IDCT_Source[_Decoder.IDCT_P[j]] =
-                            this.getn(index, value & 15, temp, index) * qtab[j];
-                    }
-                }
             }
         }
         return 0;
     }
-    decodeSingle(prev, temp, index) {
+    decodeSingle(t, e, r) {
         if (this.selector === null) {
             throw new Error("decode hasn't run yet");
         }
-        let value, i, n, nRestart;
-        if (this.restarting) {
-            this.restarting = false;
-            prev[0] = 1 << (this.frame.precision - 1);
-        }
-        else {
-            prev[0] = this.selector();
-        }
-        for (i = 0; i < this.nBlock[0]; i += 1) {
-            value = this.getHuffmanValue(this.dcTab[0], temp, index);
-            if (value >= 65280) {
-                return value;
+        let o, s, i, n;
+        for (this.restarting
+            ? ((this.restarting = !1), (t[0] = 1 << (this.frame.precision - 1)))
+            : (t[0] = this.selector()),
+            s = 0; s < this.nBlock[0]; s += 1) {
+            if (((o = this.getHuffmanValue(this.dcTab[0], e, r)), o >= 65280)) {
+                return o;
             }
-            n = this.getn(prev, value, temp, index);
-            nRestart = n >> 8;
-            if (nRestart >= _Decoder.RESTART_MARKER_BEGIN &&
-                nRestart <= _Decoder.RESTART_MARKER_END) {
-                return nRestart;
+            if (((i = this.getn(t, o, e, r)),
+                (n = i >> 8),
+                n >= a.RESTART_MARKER_BEGIN && n <= a.RESTART_MARKER_END)) {
+                return n;
             }
-            prev[0] += n;
+            t[0] += i;
         }
         return 0;
     }
-    getHuffmanValue(table, temp, index) {
-        let code, input;
-        const mask = 65535;
+    getHuffmanValue(t, e, r) {
+        let o, s;
         if (!this.stream) {
             throw new Error('stream not initialized');
         }
-        if (index[0] < 8) {
-            temp[0] <<= 8;
-            input = this.stream.get8();
-            if (input === 255) {
-                this.marker = this.stream.get8();
-                if (this.marker !== 0) {
-                    this.markerIndex = 9;
-                }
-            }
-            temp[0] |= input;
-        }
-        else {
-            index[0] -= 8;
-        }
-        code = table[temp[0] >> index[0]];
-        if ((code & _Decoder.MSB) !== 0) {
+        if ((r[0] < 8
+            ? ((e[0] <<= 8),
+                (s = this.stream.get8()),
+                s === 255 &&
+                    ((this.marker = this.stream.get8()),
+                        this.marker !== 0 && (this.markerIndex = 9)),
+                (e[0] |= s))
+            : (r[0] -= 8),
+            (o = t[e[0] >> r[0]]),
+            o & a.MSB)) {
             if (this.markerIndex !== 0) {
-                this.markerIndex = 0;
-                return 65280 | this.marker;
+                return (this.markerIndex = 0), 65280 | this.marker;
             }
-            temp[0] &= mask >> (16 - index[0]);
-            temp[0] <<= 8;
-            input = this.stream.get8();
-            if (input === 255) {
-                this.marker = this.stream.get8();
-                if (this.marker !== 0) {
-                    this.markerIndex = 9;
-                }
-            }
-            temp[0] |= input;
-            code = table[(code & 255) * 256 + (temp[0] >> index[0])];
-            index[0] += 8;
+            (e[0] &= 65535 >> (16 - r[0])),
+                (e[0] <<= 8),
+                (s = this.stream.get8()),
+                s === 255 &&
+                    ((this.marker = this.stream.get8()),
+                        this.marker !== 0 && (this.markerIndex = 9)),
+                (e[0] |= s),
+                (o = t[(o & 255) * 256 + (e[0] >> r[0])]),
+                (r[0] += 8);
         }
-        index[0] += 8 - (code >> 8);
-        if (index[0] < 0) {
+        if (((r[0] += 8 - (o >> 8)), r[0] < 0)) {
             throw new Error('index=' +
-                index[0] +
+                r[0] +
                 ' temp=' +
-                temp[0] +
+                e[0] +
                 ' code=' +
-                code +
+                o +
                 ' in HuffmanValue()');
         }
-        if (index[0] < this.markerIndex) {
-            this.markerIndex = 0;
-            return 65280 | this.marker;
-        }
-        temp[0] &= mask >> (16 - index[0]);
-        return code & 255;
+        return r[0] < this.markerIndex
+            ? ((this.markerIndex = 0), 65280 | this.marker)
+            : ((e[0] &= 65535 >> (16 - r[0])), o & 255);
     }
-    getn(PRED, n, temp, index) {
-        let result, input;
-        const one = 1;
-        const n_one = -1;
-        const mask = 65535;
+    getn(t, e, r, o) {
+        let s, i;
         if (this.stream === null) {
             throw new Error('stream not initialized');
         }
-        if (n === 0) {
+        if (e === 0) {
             return 0;
         }
-        if (n === 16) {
-            if (PRED[0] >= 0) {
-                return -32768;
-            }
-            else {
-                return 32768;
-            }
+        if (e === 16) {
+            return t[0] >= 0 ? -32768 : 32768;
         }
-        index[0] -= n;
-        if (index[0] >= 0) {
-            if (index[0] < this.markerIndex && !this.isLastPixel()) {
-                this.markerIndex = 0;
-                return (65280 | this.marker) << 8;
+        if (((o[0] -= e), o[0] >= 0)) {
+            if (o[0] < this.markerIndex && !this.isLastPixel()) {
+                return (this.markerIndex = 0), (65280 | this.marker) << 8;
             }
-            result = temp[0] >> index[0];
-            temp[0] &= mask >> (16 - index[0]);
+            (s = r[0] >> o[0]), (r[0] &= 65535 >> (16 - o[0]));
         }
         else {
-            temp[0] <<= 8;
-            input = this.stream.get8();
-            if (input === 255) {
-                this.marker = this.stream.get8();
-                if (this.marker !== 0) {
-                    this.markerIndex = 9;
-                }
-            }
-            temp[0] |= input;
-            index[0] += 8;
-            if (index[0] < 0) {
+            if (((r[0] <<= 8),
+                (i = this.stream.get8()),
+                i === 255 &&
+                    ((this.marker = this.stream.get8()),
+                        this.marker !== 0 && (this.markerIndex = 9)),
+                (r[0] |= i),
+                (o[0] += 8),
+                o[0] < 0)) {
                 if (this.markerIndex !== 0) {
-                    this.markerIndex = 0;
-                    return (65280 | this.marker) << 8;
+                    return (this.markerIndex = 0), (65280 | this.marker) << 8;
                 }
-                temp[0] <<= 8;
-                input = this.stream.get8();
-                if (input === 255) {
-                    this.marker = this.stream.get8();
-                    if (this.marker !== 0) {
-                        this.markerIndex = 9;
-                    }
-                }
-                temp[0] |= input;
-                index[0] += 8;
+                (r[0] <<= 8),
+                    (i = this.stream.get8()),
+                    i === 255 &&
+                        ((this.marker = this.stream.get8()),
+                            this.marker !== 0 && (this.markerIndex = 9)),
+                    (r[0] |= i),
+                    (o[0] += 8);
             }
-            if (index[0] < 0) {
-                throw new Error('index=' + index[0] + ' in getn()');
+            if (o[0] < 0) {
+                throw new Error('index=' + o[0] + ' in getn()');
             }
-            if (index[0] < this.markerIndex) {
-                this.markerIndex = 0;
-                return (65280 | this.marker) << 8;
+            if (o[0] < this.markerIndex) {
+                return (this.markerIndex = 0), (65280 | this.marker) << 8;
             }
-            result = temp[0] >> index[0];
-            temp[0] &= mask >> (16 - index[0]);
+            (s = r[0] >> o[0]), (r[0] &= 65535 >> (16 - o[0]));
         }
-        if (result < one << (n - 1)) {
-            result += (n_one << n) + 1;
-        }
-        return result;
+        return s < 1 << (e - 1) && (s += (-1 << e) + 1), s;
     }
-    getPreviousX(compOffset = 0) {
+    getPreviousX(t = 0) {
         if (this.getter === null) {
             throw new Error("decode hasn't run yet");
         }
-        if (this.xLoc > 0) {
-            return this.getter(this.yLoc * this.xDim + this.xLoc - 1, compOffset);
-        }
-        else if (this.yLoc > 0) {
-            return this.getPreviousY(compOffset);
-        }
-        else {
-            return 1 << (this.frame.precision - 1);
-        }
+        return this.xLoc > 0
+            ? this.getter(this.yLoc * this.xDim + this.xLoc - 1, t)
+            : this.yLoc > 0
+                ? this.getPreviousY(t)
+                : 1 << (this.frame.precision - 1);
     }
-    getPreviousXY(compOffset = 0) {
+    getPreviousXY(t = 0) {
         if (this.getter === null) {
             throw new Error("decode hasn't run yet");
         }
-        if (this.xLoc > 0 && this.yLoc > 0) {
-            return this.getter((this.yLoc - 1) * this.xDim + this.xLoc - 1, compOffset);
-        }
-        else {
-            return this.getPreviousY(compOffset);
-        }
+        return this.xLoc > 0 && this.yLoc > 0
+            ? this.getter((this.yLoc - 1) * this.xDim + this.xLoc - 1, t)
+            : this.getPreviousY(t);
     }
-    getPreviousY(compOffset = 0) {
+    getPreviousY(t = 0) {
         if (this.getter === null) {
             throw new Error("decode hasn't run yet");
         }
-        if (this.yLoc > 0) {
-            return this.getter((this.yLoc - 1) * this.xDim + this.xLoc, compOffset);
-        }
-        else {
-            return this.getPreviousX(compOffset);
-        }
+        return this.yLoc > 0
+            ? this.getter((this.yLoc - 1) * this.xDim + this.xLoc, t)
+            : this.getPreviousX(t);
     }
     isLastPixel() {
         return this.xLoc === this.xDim - 1 && this.yLoc === this.yDim - 1;
     }
-    outputSingle(PRED) {
+    outputSingle(t) {
         if (this.setter === null) {
             throw new Error("decode hasn't run yet");
         }
-        if (this.xLoc < this.xDim && this.yLoc < this.yDim) {
-            this.setter(this.yLoc * this.xDim + this.xLoc, this.mask & PRED[0]);
-            this.xLoc += 1;
-            if (this.xLoc >= this.xDim) {
-                this.yLoc += 1;
-                this.xLoc = 0;
-            }
-        }
+        this.xLoc < this.xDim &&
+            this.yLoc < this.yDim &&
+            (this.setter(this.yLoc * this.xDim + this.xLoc, this.mask & t[0]),
+                (this.xLoc += 1),
+                this.xLoc >= this.xDim && ((this.yLoc += 1), (this.xLoc = 0)));
     }
-    outputRGB(PRED) {
+    outputRGB(t) {
         if (this.setter === null) {
             throw new Error("decode hasn't run yet");
         }
-        const offset = this.yLoc * this.xDim + this.xLoc;
-        if (this.xLoc < this.xDim && this.yLoc < this.yDim) {
-            this.setter(offset, PRED[0], 0);
-            this.setter(offset, PRED[1], 1);
-            this.setter(offset, PRED[2], 2);
-            this.xLoc += 1;
-            if (this.xLoc >= this.xDim) {
-                this.yLoc += 1;
-                this.xLoc = 0;
-            }
-        }
+        let e = this.yLoc * this.xDim + this.xLoc;
+        this.xLoc < this.xDim &&
+            this.yLoc < this.yDim &&
+            (this.setter(e, t[0], 0),
+                this.setter(e, t[1], 1),
+                this.setter(e, t[2], 2),
+                (this.xLoc += 1),
+                this.xLoc >= this.xDim && ((this.yLoc += 1), (this.xLoc = 0)));
     }
-    setValue8(index, val) {
+    setValue8(t, e) {
         if (!this.outputData) {
             throw new Error('output data not ready');
         }
-        if (littleEndian) {
-            this.outputData[index] = val;
-        }
-        else {
-            this.outputData[index] = ((val & 255) << 8) | ((val >> 8) & 255);
-        }
+        D
+            ? (this.outputData[t] = e)
+            : (this.outputData[t] = ((e & 255) << 8) | ((e >> 8) & 255));
     }
-    getValue8(index) {
+    getValue8(t) {
         if (this.outputData === null) {
             throw new Error('output data not ready');
         }
-        if (littleEndian) {
-            return this.outputData[index];
+        if (D) {
+            return this.outputData[t];
         }
-        else {
-            const val = this.outputData[index];
-            return ((val & 255) << 8) | ((val >> 8) & 255);
+        {
+            let e = this.outputData[t];
+            return ((e & 255) << 8) | ((e >> 8) & 255);
         }
     }
-    setValueRGB(index, val, compOffset = 0) {
-        if (this.outputData === null) {
-            return;
-        }
-        this.outputData[index * 3 + compOffset] = val;
+    setValueRGB(t, e, r = 0) {
+        this.outputData !== null && (this.outputData[t * 3 + r] = e);
     }
-    getValueRGB(index, compOffset) {
+    getValueRGB(t, e) {
         if (this.outputData === null) {
             throw new Error('output data not ready');
         }
-        return this.outputData[index * 3 + compOffset];
+        return this.outputData[t * 3 + e];
     }
     readApp() {
         if (this.stream === null) {
             return null;
         }
-        let count = 0;
-        const length = this.stream.get16();
-        count += 2;
-        while (count < length) {
-            this.stream.get8();
-            count += 1;
+        let t = 0, e = this.stream.get16();
+        for (t += 2; t < e;) {
+            this.stream.get8(), (t += 1);
         }
-        return length;
+        return e;
     }
     readComment() {
         if (this.stream === null) {
             return null;
         }
-        let sb = '';
-        let count = 0;
-        const length = this.stream.get16();
-        count += 2;
-        while (count < length) {
-            sb += this.stream.get8();
-            count += 1;
+        let t = '', e = 0, r = this.stream.get16();
+        for (e += 2; e < r;) {
+            (t += this.stream.get8()), (e += 1);
         }
-        return sb;
+        return t;
     }
     readNumber() {
         if (this.stream === null) {
             return null;
         }
-        const Ld = this.stream.get16();
-        if (Ld !== 4) {
+        if (this.stream.get16() !== 4) {
             throw new Error('ERROR: Define number format throw new IOException [Ld!=4]');
         }
         return this.stream.get16();
     }
 };
-export { ComponentSpec, DataStream, Decoder, FrameHeader, HuffmanTable, QuantizationTable, ScanComponent, ScanHeader, utils_exports as Utils, };
-var __defProp = Object.defineProperty;
-var __export = (target, all) => {
-    for (var name in all) {
-        __defProp(target, name, { get: all[name], enumerable: true });
-    }
-};
-var ComponentSpec = {
-    hSamp: 0,
-    quantTableSel: 0,
-    vSamp: 0,
-};
-var DataStream = class {
-    constructor(data, offset, length) {
-        this.buffer = new Uint8Array(data, offset, length);
-        this.index = 0;
-    }
-    get16() {
-        const value = (this.buffer[this.index] << 8) + this.buffer[this.index + 1];
-        this.index += 2;
-        return value;
-    }
-    get8() {
-        const value = this.buffer[this.index];
-        this.index += 1;
-        return value;
-    }
-};
-var FrameHeader = class {
-    constructor() {
-        this.dimX = 0;
-        this.dimY = 0;
-        this.numComp = 0;
-        this.precision = 0;
-        this.components = [];
-    }
-    read(data) {
-        let count = 0;
-        let temp;
-        const length = data.get16();
-        count += 2;
-        this.precision = data.get8();
-        count += 1;
-        this.dimY = data.get16();
-        count += 2;
-        this.dimX = data.get16();
-        count += 2;
-        this.numComp = data.get8();
-        count += 1;
-        for (let i = 1; i <= this.numComp; i += 1) {
-            if (count > length) {
-                throw new Error('ERROR: frame format error');
-            }
-            const c = data.get8();
-            count += 1;
-            if (count >= length) {
-                throw new Error('ERROR: frame format error [c>=Lf]');
-            }
-            temp = data.get8();
-            count += 1;
-            if (!this.components[c]) {
-                this.components[c] = { ...ComponentSpec };
-            }
-            this.components[c].hSamp = temp >> 4;
-            this.components[c].vSamp = temp & 15;
-            this.components[c].quantTableSel = data.get8();
-            count += 1;
-        }
-        if (count !== length) {
-            throw new Error('ERROR: frame format error [Lf!=count]');
-        }
-        return 1;
-    }
-};
-var utils_exports = {};
-__export(utils_exports, {
-    crc32: () => crc32,
-    crcTable: () => crcTable,
-    createArray: () => createArray,
-    makeCRCTable: () => makeCRCTable,
-});
-var createArray = (...dimensions) => {
-    if (dimensions.length > 1) {
-        const dim = dimensions[0];
-        const rest = dimensions.slice(1);
-        const newArray = [];
-        for (let i = 0; i < dim; i++) {
-            newArray[i] = createArray(...rest);
-        }
-        return newArray;
-    }
-    else {
-        return Array(dimensions[0]).fill(void 0);
-    }
-};
-var makeCRCTable = function () {
-    let c;
-    const crcTable2 = [];
-    for (let n = 0; n < 256; n++) {
-        c = n;
-        for (let k = 0; k < 8; k++) {
-            c = c & 1 ? 3988292384 ^ (c >>> 1) : c >>> 1;
-        }
-        crcTable2[n] = c;
-    }
-    return crcTable2;
-};
-var crcTable = makeCRCTable();
-var crc32 = function (buffer) {
-    const uint8view = new Uint8Array(buffer);
-    let crc = 0 ^ -1;
-    for (let i = 0; i < uint8view.length; i++) {
-        crc = (crc >>> 8) ^ crcTable[(crc ^ uint8view[i]) & 255];
-    }
-    return (crc ^ -1) >>> 0;
-};
-var HuffmanTable = class _HuffmanTable {
-    static { this.MSB = 2147483648; }
-    constructor() {
-        this.l = createArray(4, 2, 16);
-        this.th = [0, 0, 0, 0];
-        this.v = createArray(4, 2, 16, 200);
-        this.tc = [
-            [0, 0],
-            [0, 0],
-            [0, 0],
-            [0, 0],
-        ];
-    }
-    read(data, HuffTab) {
-        let count = 0;
-        let temp;
-        let t;
-        let c;
-        let i;
-        let j;
-        const length = data.get16();
-        count += 2;
-        while (count < length) {
-            temp = data.get8();
-            count += 1;
-            t = temp & 15;
-            if (t > 3) {
-                throw new Error('ERROR: Huffman table ID > 3');
-            }
-            c = temp >> 4;
-            if (c > 2) {
-                throw new Error('ERROR: Huffman table [Table class > 2 ]');
-            }
-            this.th[t] = 1;
-            this.tc[t][c] = 1;
-            for (i = 0; i < 16; i += 1) {
-                this.l[t][c][i] = data.get8();
-                count += 1;
-            }
-            for (i = 0; i < 16; i += 1) {
-                for (j = 0; j < this.l[t][c][i]; j += 1) {
-                    if (count > length) {
-                        throw new Error('ERROR: Huffman table format error [count>Lh]');
-                    }
-                    this.v[t][c][i][j] = data.get8();
-                    count += 1;
-                }
-            }
-        }
-        if (count !== length) {
-            throw new Error('ERROR: Huffman table format error [count!=Lf]');
-        }
-        for (i = 0; i < 4; i += 1) {
-            for (j = 0; j < 2; j += 1) {
-                if (this.tc[i][j] !== 0) {
-                    this.buildHuffTable(HuffTab[i][j], this.l[i][j], this.v[i][j]);
-                }
-            }
-        }
-        return 1;
-    }
-    buildHuffTable(tab, L, V) {
-        let currentTable, k, i, j, n;
-        const temp = 256;
-        k = 0;
-        for (i = 0; i < 8; i += 1) {
-            for (j = 0; j < L[i]; j += 1) {
-                for (n = 0; n < temp >> (i + 1); n += 1) {
-                    tab[k] = V[i][j] | ((i + 1) << 8);
-                    k += 1;
-                }
-            }
-        }
-        for (i = 1; k < 256; i += 1, k += 1) {
-            tab[k] = i | _HuffmanTable.MSB;
-        }
-        currentTable = 1;
-        k = 0;
-        for (i = 8; i < 16; i += 1) {
-            for (j = 0; j < L[i]; j += 1) {
-                for (n = 0; n < temp >> (i - 7); n += 1) {
-                    tab[currentTable * 256 + k] = V[i][j] | ((i + 1) << 8);
-                    k += 1;
-                }
-                if (k >= 256) {
-                    if (k > 256) {
-                        throw new Error('ERROR: Huffman table error(1)!');
-                    }
-                    k = 0;
-                    currentTable += 1;
-                }
-            }
-        }
-    }
-};
-var QuantizationTable = class _QuantizationTable {
-    constructor() {
-        this.precision = [];
-        this.tq = [0, 0, 0, 0];
-        this.quantTables = createArray(4, 64);
-    }
-    static { this.enhanceQuantizationTable = function (qtab, table) {
-        for (let i = 0; i < 8; i += 1) {
-            qtab[table[0 * 8 + i]] *= 90;
-            qtab[table[4 * 8 + i]] *= 90;
-            qtab[table[2 * 8 + i]] *= 118;
-            qtab[table[6 * 8 + i]] *= 49;
-            qtab[table[5 * 8 + i]] *= 71;
-            qtab[table[1 * 8 + i]] *= 126;
-            qtab[table[7 * 8 + i]] *= 25;
-            qtab[table[3 * 8 + i]] *= 106;
-        }
-        for (let i = 0; i < 8; i += 1) {
-            qtab[table[0 + 8 * i]] *= 90;
-            qtab[table[4 + 8 * i]] *= 90;
-            qtab[table[2 + 8 * i]] *= 118;
-            qtab[table[6 + 8 * i]] *= 49;
-            qtab[table[5 + 8 * i]] *= 71;
-            qtab[table[1 + 8 * i]] *= 126;
-            qtab[table[7 + 8 * i]] *= 25;
-            qtab[table[3 + 8 * i]] *= 106;
-        }
-        for (let i = 0; i < 64; i += 1) {
-            qtab[i] >>= 6;
-        }
-    }; }
-    read(data, table) {
-        let count = 0;
-        let temp;
-        let t;
-        let i;
-        const length = data.get16();
-        count += 2;
-        while (count < length) {
-            temp = data.get8();
-            count += 1;
-            t = temp & 15;
-            if (t > 3) {
-                throw new Error('ERROR: Quantization table ID > 3');
-            }
-            this.precision[t] = temp >> 4;
-            if (this.precision[t] === 0) {
-                this.precision[t] = 8;
-            }
-            else if (this.precision[t] === 1) {
-                this.precision[t] = 16;
-            }
-            else {
-                throw new Error('ERROR: Quantization table precision error');
-            }
-            this.tq[t] = 1;
-            if (this.precision[t] === 8) {
-                for (i = 0; i < 64; i += 1) {
-                    if (count > length) {
-                        throw new Error('ERROR: Quantization table format error');
-                    }
-                    this.quantTables[t][i] = data.get8();
-                    count += 1;
-                }
-                _QuantizationTable.enhanceQuantizationTable(this.quantTables[t], table);
-            }
-            else {
-                for (i = 0; i < 64; i += 1) {
-                    if (count > length) {
-                        throw new Error('ERROR: Quantization table format error');
-                    }
-                    this.quantTables[t][i] = data.get16();
-                    count += 2;
-                }
-                _QuantizationTable.enhanceQuantizationTable(this.quantTables[t], table);
-            }
-        }
-        if (count !== length) {
-            throw new Error('ERROR: Quantization table error [count!=Lq]');
-        }
-        return 1;
-    }
-};
-var ScanComponent = {
-    acTabSel: 0,
-    dcTabSel: 0,
-    scanCompSel: 0,
-};
-var ScanHeader = class {
-    constructor() {
-        this.ah = 0;
-        this.al = 0;
-        this.numComp = 0;
-        this.selection = 0;
-        this.spectralEnd = 0;
-        this.components = [];
-    }
-    read(data) {
-        let count = 0;
-        let i;
-        let temp;
-        const length = data.get16();
-        count += 2;
-        this.numComp = data.get8();
-        count += 1;
-        for (i = 0; i < this.numComp; i += 1) {
-            this.components[i] = { ...ScanComponent };
-            if (count > length) {
-                throw new Error('ERROR: scan header format error');
-            }
-            this.components[i].scanCompSel = data.get8();
-            count += 1;
-            temp = data.get8();
-            count += 1;
-            this.components[i].dcTabSel = temp >> 4;
-            this.components[i].acTabSel = temp & 15;
-        }
-        this.selection = data.get8();
-        count += 1;
-        this.spectralEnd = data.get8();
-        count += 1;
-        temp = data.get8();
-        this.ah = temp >> 4;
-        this.al = temp & 15;
-        count += 1;
-        if (count !== length) {
-            throw new Error('ERROR: scan header format error [count!=Ns]');
-        }
-        return 1;
-    }
-};
-var littleEndian = (function () {
-    const buffer = new ArrayBuffer(2);
-    new DataView(buffer).setInt16(0, 256, true);
-    return new Int16Array(buffer)[0] === 256;
-})();
-var Decoder = class _Decoder {
-    static { this.IDCT_P = [
-        0, 5, 40, 16, 45, 2, 7, 42, 21, 56, 8, 61, 18, 47, 1, 4, 41, 23, 58, 13, 32,
-        24, 37, 10, 63, 17, 44, 3, 6, 43, 20, 57, 15, 34, 29, 48, 53, 26, 39, 9, 60,
-        19, 46, 22, 59, 12, 33, 31, 50, 55, 25, 36, 11, 62, 14, 35, 28, 49, 52, 27,
-        38, 30, 51, 54,
-    ]; }
-    static { this.TABLE = [
-        0, 1, 5, 6, 14, 15, 27, 28, 2, 4, 7, 13, 16, 26, 29, 42, 3, 8, 12, 17, 25,
-        30, 41, 43, 9, 11, 18, 24, 31, 40, 44, 53, 10, 19, 23, 32, 39, 45, 52, 54,
-        20, 22, 33, 38, 46, 51, 55, 60, 21, 34, 37, 47, 50, 56, 59, 61, 35, 36, 48,
-        49, 57, 58, 62, 63,
-    ]; }
-    static { this.MAX_HUFFMAN_SUBTREE = 50; }
-    static { this.MSB = 2147483648; }
-    static { this.RESTART_MARKER_BEGIN = 65488; }
-    static { this.RESTART_MARKER_END = 65495; }
-    constructor(buffer, numBytes) {
-        this.buffer = null;
-        this.stream = null;
-        this.frame = new FrameHeader();
-        this.huffTable = new HuffmanTable();
-        this.quantTable = new QuantizationTable();
-        this.scan = new ScanHeader();
-        this.DU = createArray(10, 4, 64);
-        this.HuffTab = createArray(4, 2, 50 * 256);
-        this.IDCT_Source = [];
-        this.nBlock = [];
-        this.acTab = createArray(10, 1);
-        this.dcTab = createArray(10, 1);
-        this.qTab = createArray(10, 1);
-        this.marker = 0;
-        this.markerIndex = 0;
-        this.numComp = 0;
-        this.restartInterval = 0;
-        this.selection = 0;
-        this.xDim = 0;
-        this.yDim = 0;
-        this.xLoc = 0;
-        this.yLoc = 0;
-        this.outputData = null;
-        this.restarting = false;
-        this.mask = 0;
-        this.numBytes = 0;
-        this.precision = void 0;
-        this.components = [];
-        this.getter = null;
-        this.setter = null;
-        this.output = null;
-        this.selector = null;
-        this.buffer = buffer ?? null;
-        this.numBytes = numBytes ?? 0;
-    }
-    decompress(buffer, offset, length) {
-        const result = this.decode(buffer, offset, length);
-        return result.buffer;
-    }
-    decode(buffer, offset, length, numBytes) {
-        let scanNum = 0;
-        const pred = [];
-        let i;
-        let compN;
-        const temp = [];
-        const index = [];
-        let mcuNum;
-        if (buffer) {
-            this.buffer = buffer;
-        }
-        if (numBytes !== void 0) {
-            this.numBytes = numBytes;
-        }
-        this.stream = new DataStream(this.buffer, offset, length);
-        this.buffer = null;
-        this.xLoc = 0;
-        this.yLoc = 0;
-        let current = this.stream.get16();
-        if (current !== 65496) {
-            throw new Error('Not a JPEG file');
-        }
-        current = this.stream.get16();
-        while (current >> 4 !== 4092 || current === 65476) {
-            switch (current) {
-                case 65476:
-                    this.huffTable.read(this.stream, this.HuffTab);
-                    break;
-                case 65484:
-                    throw new Error("Program doesn't support arithmetic coding. (format throw new IOException)");
-                case 65499:
-                    this.quantTable.read(this.stream, _Decoder.TABLE);
-                    break;
-                case 65501:
-                    this.restartInterval = this.readNumber() ?? 0;
-                    break;
-                case 65504:
-                case 65505:
-                case 65506:
-                case 65507:
-                case 65508:
-                case 65509:
-                case 65510:
-                case 65511:
-                case 65512:
-                case 65513:
-                case 65514:
-                case 65515:
-                case 65516:
-                case 65517:
-                case 65518:
-                case 65519:
-                    this.readApp();
-                    break;
-                case 65534:
-                    this.readComment();
-                    break;
-                default:
-                    if (current >> 8 !== 255) {
-                        throw new Error('ERROR: format throw new IOException! (decode)');
-                    }
-            }
-            current = this.stream.get16();
-        }
-        if (current < 65472 || current > 65479) {
-            throw new Error('ERROR: could not handle arithmetic code!');
-        }
-        this.frame.read(this.stream);
-        current = this.stream.get16();
-        do {
-            while (current !== 65498) {
-                switch (current) {
-                    case 65476:
-                        this.huffTable.read(this.stream, this.HuffTab);
-                        break;
-                    case 65484:
-                        throw new Error("Program doesn't support arithmetic coding. (format throw new IOException)");
-                    case 65499:
-                        this.quantTable.read(this.stream, _Decoder.TABLE);
-                        break;
-                    case 65501:
-                        this.restartInterval = this.readNumber() ?? 0;
-                        break;
-                    case 65504:
-                    case 65505:
-                    case 65506:
-                    case 65507:
-                    case 65508:
-                    case 65509:
-                    case 65510:
-                    case 65511:
-                    case 65512:
-                    case 65513:
-                    case 65514:
-                    case 65515:
-                    case 65516:
-                    case 65517:
-                    case 65518:
-                    case 65519:
-                        this.readApp();
-                        break;
-                    case 65534:
-                        this.readComment();
-                        break;
-                    default:
-                        if (current >> 8 !== 255) {
-                            throw new Error('ERROR: format throw new IOException! (Parser.decode)');
-                        }
-                }
-                current = this.stream.get16();
-            }
-            this.precision = this.frame.precision;
-            this.components = this.frame.components;
-            if (!this.numBytes) {
-                this.numBytes = Math.round(Math.ceil(this.precision / 8));
-            }
-            if (this.numBytes === 1) {
-                this.mask = 255;
-            }
-            else {
-                this.mask = 65535;
-            }
-            this.scan.read(this.stream);
-            this.numComp = this.scan.numComp;
-            this.selection = this.scan.selection;
-            if (this.numBytes === 1) {
-                if (this.numComp === 3) {
-                    this.getter = this.getValueRGB;
-                    this.setter = this.setValueRGB;
-                    this.output = this.outputRGB;
-                }
-                else {
-                    this.getter = this.getValue8;
-                    this.setter = this.setValue8;
-                    this.output = this.outputSingle;
-                }
-            }
-            else {
-                this.getter = this.getValue8;
-                this.setter = this.setValue8;
-                this.output = this.outputSingle;
-            }
-            switch (this.selection) {
-                case 2:
-                    this.selector = this.select2;
-                    break;
-                case 3:
-                    this.selector = this.select3;
-                    break;
-                case 4:
-                    this.selector = this.select4;
-                    break;
-                case 5:
-                    this.selector = this.select5;
-                    break;
-                case 6:
-                    this.selector = this.select6;
-                    break;
-                case 7:
-                    this.selector = this.select7;
-                    break;
-                default:
-                    this.selector = this.select1;
-                    break;
-            }
-            for (i = 0; i < this.numComp; i += 1) {
-                compN = this.scan.components[i].scanCompSel;
-                this.qTab[i] =
-                    this.quantTable.quantTables[this.components[compN].quantTableSel];
-                this.nBlock[i] =
-                    this.components[compN].vSamp * this.components[compN].hSamp;
-                this.dcTab[i] = this.HuffTab[this.scan.components[i].dcTabSel][0];
-                this.acTab[i] = this.HuffTab[this.scan.components[i].acTabSel][1];
-            }
-            this.xDim = this.frame.dimX;
-            this.yDim = this.frame.dimY;
-            if (this.numBytes === 1) {
-                this.outputData = new Uint8Array(new ArrayBuffer(this.xDim * this.yDim * this.numBytes * this.numComp));
-            }
-            else {
-                this.outputData = new Uint16Array(new ArrayBuffer(this.xDim * this.yDim * this.numBytes * this.numComp));
-            }
-            scanNum += 1;
-            while (true) {
-                temp[0] = 0;
-                index[0] = 0;
-                for (i = 0; i < 10; i += 1) {
-                    pred[i] = 1 << (this.precision - 1);
-                }
-                if (this.restartInterval === 0) {
-                    current = this.decodeUnit(pred, temp, index);
-                    while (current === 0 &&
-                        this.xLoc < this.xDim &&
-                        this.yLoc < this.yDim) {
-                        this.output(pred);
-                        current = this.decodeUnit(pred, temp, index);
-                    }
-                    break;
-                }
-                for (mcuNum = 0; mcuNum < this.restartInterval; mcuNum += 1) {
-                    this.restarting = mcuNum === 0;
-                    current = this.decodeUnit(pred, temp, index);
-                    this.output(pred);
-                    if (current !== 0) {
-                        break;
-                    }
-                }
-                if (current === 0) {
-                    if (this.markerIndex !== 0) {
-                        current = 65280 | this.marker;
-                        this.markerIndex = 0;
-                    }
-                    else {
-                        current = this.stream.get16();
-                    }
-                }
-                if (!(current >= _Decoder.RESTART_MARKER_BEGIN &&
-                    current <= _Decoder.RESTART_MARKER_END)) {
-                    break;
-                }
-            }
-            if (current === 65500 && scanNum === 1) {
-                this.readNumber();
-                current = this.stream.get16();
-            }
-        } while (current !== 65497 &&
-            this.xLoc < this.xDim &&
-            this.yLoc < this.yDim &&
-            scanNum === 0);
-        return this.outputData;
-    }
-    decodeUnit(prev, temp, index) {
-        if (this.numComp === 1) {
-            return this.decodeSingle(prev, temp, index);
-        }
-        else if (this.numComp === 3) {
-            return this.decodeRGB(prev, temp, index);
-        }
-        else {
-            return -1;
-        }
-    }
-    select1(compOffset) {
-        return this.getPreviousX(compOffset);
-    }
-    select2(compOffset) {
-        return this.getPreviousY(compOffset);
-    }
-    select3(compOffset) {
-        return this.getPreviousXY(compOffset);
-    }
-    select4(compOffset) {
-        return (this.getPreviousX(compOffset) +
-            this.getPreviousY(compOffset) -
-            this.getPreviousXY(compOffset));
-    }
-    select5(compOffset) {
-        return (this.getPreviousX(compOffset) +
-            ((this.getPreviousY(compOffset) - this.getPreviousXY(compOffset)) >> 1));
-    }
-    select6(compOffset) {
-        return (this.getPreviousY(compOffset) +
-            ((this.getPreviousX(compOffset) - this.getPreviousXY(compOffset)) >> 1));
-    }
-    select7(compOffset) {
-        return (this.getPreviousX(compOffset) + this.getPreviousY(compOffset)) / 2;
-    }
-    decodeRGB(prev, temp, index) {
-        if (this.selector === null) {
-            throw new Error("decode hasn't run yet");
-        }
-        let actab, dctab, qtab, ctrC, i, k, j;
-        prev[0] = this.selector(0);
-        prev[1] = this.selector(1);
-        prev[2] = this.selector(2);
-        for (ctrC = 0; ctrC < this.numComp; ctrC += 1) {
-            qtab = this.qTab[ctrC];
-            actab = this.acTab[ctrC];
-            dctab = this.dcTab[ctrC];
-            for (i = 0; i < this.nBlock[ctrC]; i += 1) {
-                for (k = 0; k < this.IDCT_Source.length; k += 1) {
-                    this.IDCT_Source[k] = 0;
-                }
-                let value = this.getHuffmanValue(dctab, temp, index);
-                if (value >= 65280) {
-                    return value;
-                }
-                prev[ctrC] = this.IDCT_Source[0] =
-                    prev[ctrC] + this.getn(index, value, temp, index);
-                this.IDCT_Source[0] *= qtab[0];
-                for (j = 1; j < 64; j += 1) {
-                    value = this.getHuffmanValue(actab, temp, index);
-                    if (value >= 65280) {
-                        return value;
-                    }
-                    j += value >> 4;
-                    if ((value & 15) === 0) {
-                        if (value >> 4 === 0) {
-                            break;
-                        }
-                    }
-                    else {
-                        this.IDCT_Source[_Decoder.IDCT_P[j]] =
-                            this.getn(index, value & 15, temp, index) * qtab[j];
-                    }
-                }
-            }
-        }
-        return 0;
-    }
-    decodeSingle(prev, temp, index) {
-        if (this.selector === null) {
-            throw new Error("decode hasn't run yet");
-        }
-        let value, i, n, nRestart;
-        if (this.restarting) {
-            this.restarting = false;
-            prev[0] = 1 << (this.frame.precision - 1);
-        }
-        else {
-            prev[0] = this.selector();
-        }
-        for (i = 0; i < this.nBlock[0]; i += 1) {
-            value = this.getHuffmanValue(this.dcTab[0], temp, index);
-            if (value >= 65280) {
-                return value;
-            }
-            n = this.getn(prev, value, temp, index);
-            nRestart = n >> 8;
-            if (nRestart >= _Decoder.RESTART_MARKER_BEGIN &&
-                nRestart <= _Decoder.RESTART_MARKER_END) {
-                return nRestart;
-            }
-            prev[0] += n;
-        }
-        return 0;
-    }
-    getHuffmanValue(table, temp, index) {
-        let code, input;
-        const mask = 65535;
-        if (!this.stream) {
-            throw new Error('stream not initialized');
-        }
-        if (index[0] < 8) {
-            temp[0] <<= 8;
-            input = this.stream.get8();
-            if (input === 255) {
-                this.marker = this.stream.get8();
-                if (this.marker !== 0) {
-                    this.markerIndex = 9;
-                }
-            }
-            temp[0] |= input;
-        }
-        else {
-            index[0] -= 8;
-        }
-        code = table[temp[0] >> index[0]];
-        if ((code & _Decoder.MSB) !== 0) {
-            if (this.markerIndex !== 0) {
-                this.markerIndex = 0;
-                return 65280 | this.marker;
-            }
-            temp[0] &= mask >> (16 - index[0]);
-            temp[0] <<= 8;
-            input = this.stream.get8();
-            if (input === 255) {
-                this.marker = this.stream.get8();
-                if (this.marker !== 0) {
-                    this.markerIndex = 9;
-                }
-            }
-            temp[0] |= input;
-            code = table[(code & 255) * 256 + (temp[0] >> index[0])];
-            index[0] += 8;
-        }
-        index[0] += 8 - (code >> 8);
-        if (index[0] < 0) {
-            throw new Error('index=' +
-                index[0] +
-                ' temp=' +
-                temp[0] +
-                ' code=' +
-                code +
-                ' in HuffmanValue()');
-        }
-        if (index[0] < this.markerIndex) {
-            this.markerIndex = 0;
-            return 65280 | this.marker;
-        }
-        temp[0] &= mask >> (16 - index[0]);
-        return code & 255;
-    }
-    getn(PRED, n, temp, index) {
-        let result, input;
-        const one = 1;
-        const n_one = -1;
-        const mask = 65535;
-        if (this.stream === null) {
-            throw new Error('stream not initialized');
-        }
-        if (n === 0) {
-            return 0;
-        }
-        if (n === 16) {
-            if (PRED[0] >= 0) {
-                return -32768;
-            }
-            else {
-                return 32768;
-            }
-        }
-        index[0] -= n;
-        if (index[0] >= 0) {
-            if (index[0] < this.markerIndex && !this.isLastPixel()) {
-                this.markerIndex = 0;
-                return (65280 | this.marker) << 8;
-            }
-            result = temp[0] >> index[0];
-            temp[0] &= mask >> (16 - index[0]);
-        }
-        else {
-            temp[0] <<= 8;
-            input = this.stream.get8();
-            if (input === 255) {
-                this.marker = this.stream.get8();
-                if (this.marker !== 0) {
-                    this.markerIndex = 9;
-                }
-            }
-            temp[0] |= input;
-            index[0] += 8;
-            if (index[0] < 0) {
-                if (this.markerIndex !== 0) {
-                    this.markerIndex = 0;
-                    return (65280 | this.marker) << 8;
-                }
-                temp[0] <<= 8;
-                input = this.stream.get8();
-                if (input === 255) {
-                    this.marker = this.stream.get8();
-                    if (this.marker !== 0) {
-                        this.markerIndex = 9;
-                    }
-                }
-                temp[0] |= input;
-                index[0] += 8;
-            }
-            if (index[0] < 0) {
-                throw new Error('index=' + index[0] + ' in getn()');
-            }
-            if (index[0] < this.markerIndex) {
-                this.markerIndex = 0;
-                return (65280 | this.marker) << 8;
-            }
-            result = temp[0] >> index[0];
-            temp[0] &= mask >> (16 - index[0]);
-        }
-        if (result < one << (n - 1)) {
-            result += (n_one << n) + 1;
-        }
-        return result;
-    }
-    getPreviousX(compOffset = 0) {
-        if (this.getter === null) {
-            throw new Error("decode hasn't run yet");
-        }
-        if (this.xLoc > 0) {
-            return this.getter(this.yLoc * this.xDim + this.xLoc - 1, compOffset);
-        }
-        else if (this.yLoc > 0) {
-            return this.getPreviousY(compOffset);
-        }
-        else {
-            return 1 << (this.frame.precision - 1);
-        }
-    }
-    getPreviousXY(compOffset = 0) {
-        if (this.getter === null) {
-            throw new Error("decode hasn't run yet");
-        }
-        if (this.xLoc > 0 && this.yLoc > 0) {
-            return this.getter((this.yLoc - 1) * this.xDim + this.xLoc - 1, compOffset);
-        }
-        else {
-            return this.getPreviousY(compOffset);
-        }
-    }
-    getPreviousY(compOffset = 0) {
-        if (this.getter === null) {
-            throw new Error("decode hasn't run yet");
-        }
-        if (this.yLoc > 0) {
-            return this.getter((this.yLoc - 1) * this.xDim + this.xLoc, compOffset);
-        }
-        else {
-            return this.getPreviousX(compOffset);
-        }
-    }
-    isLastPixel() {
-        return this.xLoc === this.xDim - 1 && this.yLoc === this.yDim - 1;
-    }
-    outputSingle(PRED) {
-        if (this.setter === null) {
-            throw new Error("decode hasn't run yet");
-        }
-        if (this.xLoc < this.xDim && this.yLoc < this.yDim) {
-            this.setter(this.yLoc * this.xDim + this.xLoc, this.mask & PRED[0]);
-            this.xLoc += 1;
-            if (this.xLoc >= this.xDim) {
-                this.yLoc += 1;
-                this.xLoc = 0;
-            }
-        }
-    }
-    outputRGB(PRED) {
-        if (this.setter === null) {
-            throw new Error("decode hasn't run yet");
-        }
-        const offset = this.yLoc * this.xDim + this.xLoc;
-        if (this.xLoc < this.xDim && this.yLoc < this.yDim) {
-            this.setter(offset, PRED[0], 0);
-            this.setter(offset, PRED[1], 1);
-            this.setter(offset, PRED[2], 2);
-            this.xLoc += 1;
-            if (this.xLoc >= this.xDim) {
-                this.yLoc += 1;
-                this.xLoc = 0;
-            }
-        }
-    }
-    setValue8(index, val) {
-        if (!this.outputData) {
-            throw new Error('output data not ready');
-        }
-        if (littleEndian) {
-            this.outputData[index] = val;
-        }
-        else {
-            this.outputData[index] = ((val & 255) << 8) | ((val >> 8) & 255);
-        }
-    }
-    getValue8(index) {
-        if (this.outputData === null) {
-            throw new Error('output data not ready');
-        }
-        if (littleEndian) {
-            return this.outputData[index];
-        }
-        else {
-            const val = this.outputData[index];
-            return ((val & 255) << 8) | ((val >> 8) & 255);
-        }
-    }
-    setValueRGB(index, val, compOffset = 0) {
-        if (this.outputData === null) {
-            return;
-        }
-        this.outputData[index * 3 + compOffset] = val;
-    }
-    getValueRGB(index, compOffset) {
-        if (this.outputData === null) {
-            throw new Error('output data not ready');
-        }
-        return this.outputData[index * 3 + compOffset];
-    }
-    readApp() {
-        if (this.stream === null) {
-            return null;
-        }
-        let count = 0;
-        const length = this.stream.get16();
-        count += 2;
-        while (count < length) {
-            this.stream.get8();
-            count += 1;
-        }
-        return length;
-    }
-    readComment() {
-        if (this.stream === null) {
-            return null;
-        }
-        let sb = '';
-        let count = 0;
-        const length = this.stream.get16();
-        count += 2;
-        while (count < length) {
-            sb += this.stream.get8();
-            count += 1;
-        }
-        return sb;
-    }
-    readNumber() {
-        if (this.stream === null) {
-            return null;
-        }
-        const Ld = this.stream.get16();
-        if (Ld !== 4) {
-            throw new Error('ERROR: Define number format throw new IOException [Ld!=4]');
-        }
-        return this.stream.get16();
-    }
-};
-export { ComponentSpec, DataStream, Decoder, FrameHeader, HuffmanTable, QuantizationTable, ScanComponent, ScanHeader, utils_exports as Utils, };
+export { w as ComponentSpec, b as DataStream, E as Decoder, x as FrameHeader, p as HuffmanTable, d as QuantizationTable, R as ScanComponent, g as ScanHeader, k as Utils, };
