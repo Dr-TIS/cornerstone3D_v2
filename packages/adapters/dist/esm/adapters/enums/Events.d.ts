@@ -1,0 +1,4 @@
+declare enum Events {
+    SEGMENTATION_LOAD_PROGRESS = "CORNERSTONE_ADAPTER_SEGMENTATION_LOAD_PROGRESS"
+}
+export default Events;
