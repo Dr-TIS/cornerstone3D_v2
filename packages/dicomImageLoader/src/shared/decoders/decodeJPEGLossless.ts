@@ -30,7 +30,7 @@ async function decodeJPEGLossless(
 ): Promise<Types.IImageFrame> {
   await initialize();
 
-  // check to make sure codec is loaded
+  // check to make sure codec is  loaded
   if (
     typeof local.jpeg === 'undefined' ||
     typeof local.jpeg.lossless === 'undefined' ||
