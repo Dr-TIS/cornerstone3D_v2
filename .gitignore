@@ -39,7 +39,7 @@ packages/docs/dist/
 packages/docs/static/examples
 packages/docs/static/test-coverage
 packages/docs/docs/examples.md
-dist/
+# dist/
 tsDist/
 lib/
 lib-esm/
