@@ -1187,10 +1187,10 @@
   resolved "https://registry.yarnpkg.com/@colors/colors/-/colors-1.5.0.tgz#bb504579c1cae923e6576a4f5da43d25f97bdbd9"
   integrity sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ==
 
-"@cornerstonejs/adapters@^3.7.6":
-  version "3.7.10"
-  resolved "https://registry.yarnpkg.com/@cornerstonejs/adapters/-/adapters-3.7.10.tgz#8df0506b6048dd7f0f3d17e8083d7be922627574"
-  integrity sha512-GorV6k+ty+0RdHrqhtDNr2wYbZ/t/+lCxH9rvyGYyqFdxLLyO7ltdbvsN0+SVp4w+qR+dCNuUKWXTlwE9GtFNw==
+"@cornerstonejs/adapters@^3.10.4":
+  version "3.10.30"
+  resolved "https://registry.yarnpkg.com/@cornerstonejs/adapters/-/adapters-3.10.30.tgz#98cb8304724627e248e2bfd6e245ed29dd79acd2"
+  integrity sha512-BDL4ZfGfgxaWo6kfH90CXvPpl/ctlYKNiXxN4xQywhASGFkMEXS0rgkusnCrnEEsocx5sF4X/X1yZoT8xZPBfw==
   dependencies:
     "@babel/runtime-corejs2" "^7.17.8"
     buffer "^6.0.3"
@@ -1218,20 +1218,20 @@
   resolved "https://registry.yarnpkg.com/@cornerstonejs/codec-openjph/-/codec-openjph-2.4.7.tgz#784394d05d8cf735640e9c3baa206535ee8e0376"
   integrity sha512-qvP4q4JDib7mi9r7LqKOwqz7YZ8gjtDX4ZCezeYf8+eb7MBXCz5uXAMeVF3yz9Axw4XiIMdB/pqXkm8tqCl13w==
 
-"@cornerstonejs/core@^3.7.6":
-  version "3.7.10"
-  resolved "https://registry.yarnpkg.com/@cornerstonejs/core/-/core-3.7.10.tgz#3ea2fed67b7265d664d2d828f455e1f5e4ebeb28"
-  integrity sha512-WK9EY8kTxTQTXFCdBldMrYjO3IZPWhT88ByaHHos3Zs5QRR6zeITN1hHOaSCBhP06zZUv0j+olAvzTEMxcghcw==
+"@cornerstonejs/core@^3.10.4":
+  version "3.10.30"
+  resolved "https://registry.yarnpkg.com/@cornerstonejs/core/-/core-3.10.30.tgz#c8fb9877c754ebf27909a6d736bfbc2aa639f0dc"
+  integrity sha512-VLZn4IzlpNseOfSm3UgI2+8pMg2p5GRJ2vy5Tai5rT2YLgYzqdpPp6/Qe9kOvsBzJq7NR5M57PtQJ6n0sd4F8g==
   dependencies:
     "@kitware/vtk.js" "32.12.1"
     comlink "^4.4.1"
     gl-matrix "^3.4.3"
     loglevel "^1.9.2"
 
-"@cornerstonejs/dicom-image-loader@^3.7.6":
-  version "3.7.10"
-  resolved "https://registry.yarnpkg.com/@cornerstonejs/dicom-image-loader/-/dicom-image-loader-3.7.10.tgz#dbbe0c379cf134651793c5a962e05935647fc9fd"
-  integrity sha512-Nd1KiDXg101DaDrj+0bL6SmAYo/BUV4N8G5UvaocoDz65r6RsR6eE3H+zCXftGgQZ2IlHEnQUCebdCyX+oXe4A==
+"@cornerstonejs/dicom-image-loader@^3.10.4":
+  version "3.10.30"
+  resolved "https://registry.yarnpkg.com/@cornerstonejs/dicom-image-loader/-/dicom-image-loader-3.10.30.tgz#07456dfa62034723bb23ba3fa78da5f01b956932"
+  integrity sha512-l9DMQArG78uEcr1U/OElUFr6m8/c6iq8Z7M3ehJRUV1xHM4e4TydzfL/WFk1HmnF3K6QuQ+R2LDu2UqBPey/lQ==
   dependencies:
     "@cornerstonejs/codec-charls" "^1.2.3"
     "@cornerstonejs/codec-libjpeg-turbo-8bit" "^1.2.2"
@@ -1243,17 +1243,17 @@
     pako "^2.0.4"
     uuid "^9.0.0"
 
-"@cornerstonejs/nifti-volume-loader@^3.7.6":
-  version "3.7.10"
-  resolved "https://registry.yarnpkg.com/@cornerstonejs/nifti-volume-loader/-/nifti-volume-loader-3.7.10.tgz#d214676a87bf6bca8120db73f601d64b3cee066e"
-  integrity sha512-4VeeE9Y21qDd/0xLxJB1nJ7SZjxcIlHh+R3yQKJPNLlqI7yhpO9TSGVWawi1wjVcUtqXMD1GMSw6Jju+K8pCMA==
+"@cornerstonejs/nifti-volume-loader@^3.10.4":
+  version "3.10.30"
+  resolved "https://registry.yarnpkg.com/@cornerstonejs/nifti-volume-loader/-/nifti-volume-loader-3.10.30.tgz#88ba9260d84ac50c7dbddf0472ff7483a3cad75c"
+  integrity sha512-nvhNpaG1qE5v5bOVgDQT0XIRiRTEr7VsT9+mRkiS+8vCuFrY2mCl/66Nqfzv4Qf8FFYaqJoRe9rjahrEikS2CA==
   dependencies:
     nifti-reader-js "^0.6.8"
 
-"@cornerstonejs/tools@^3.7.6":
-  version "3.7.10"
-  resolved "https://registry.yarnpkg.com/@cornerstonejs/tools/-/tools-3.7.10.tgz#68e43cbe879e90b8f9001f7d65808b85b5d65eaa"
-  integrity sha512-kOaoidftQIdlWLgwysYyKGhnWOsEAicihrVOGyAheJtgSpIEmtRAsHrLUyKITg3PIlmKVdIvZW1bxvpnmsZtqg==
+"@cornerstonejs/tools@^3.10.4":
+  version "3.10.30"
+  resolved "https://registry.yarnpkg.com/@cornerstonejs/tools/-/tools-3.10.30.tgz#d724ee42d353d8ad3ef2d364986d09cefee1931f"
+  integrity sha512-ecAD2KYDA/03ySsIGhEvHNwqYvzMNaLG9pdSqnDklSjsbfhh6A8kUE3Xph/pvuGbcz7/R+z7TX6NSy75uIqYAg==
   dependencies:
     "@types/offscreencanvas" "2019.7.3"
     comlink "^4.4.1"
@@ -6191,9 +6191,9 @@ http-parser-js@>=0.5.1:
   integrity sha512-n1XsPy3rXVxlqxVioEWdC+0+M+SQw0DpJynwtOPo1X+ZlvdzTLtDBIJJlDQTnwZIFJrZSzSGmIOUdP8tu+SgLw==
 
 http-proxy-middleware@^2.0.3:
-  version "2.0.7"
-  resolved "https://registry.yarnpkg.com/http-proxy-middleware/-/http-proxy-middleware-2.0.7.tgz#915f236d92ae98ef48278a95dedf17e991936ec6"
-  integrity sha512-fgVY8AV7qU7z/MmXJ/rxwbrtQH4jBQ9m7kp3llF0liB7glmFeVZFBepQb32T3y8n8k2+AEYuMPCpinYW+/CuRA==
+  version "2.0.9"
+  resolved "https://registry.yarnpkg.com/http-proxy-middleware/-/http-proxy-middleware-2.0.9.tgz#e9e63d68afaa4eee3d147f39149ab84c0c2815ef"
+  integrity sha512-c1IyJYLYppU574+YI7R4QyX2ystMtVXZwIdzazUIPIJsHuWNd+mho2j+bKoHftndicGj9yh+xjd+l0yj7VeT1Q==
   dependencies:
     "@types/http-proxy" "^1.17.8"
     http-proxy "^1.18.1"
