@@ -85,9 +85,42 @@ async function decodeAsync(
   const frameInfo = decoder.getFrameInfo();
   // get the decoded pixels
   const decodedBufferInWASM = decoder.getDecodedBuffer();
-  const imageFrame = new Uint8Array(decodedBufferInWASM.length);
 
-  imageFrame.set(decodedBufferInWASM);
+  // Some encoders (e.g. some Hologic mammography files) set the signed flag in
+  // the J2K SIZ marker even when the DICOM declares PixelRepresentation = 0
+  // (unsigned). OpenJPEG then returns sign-extended 16-bit values, so any
+  // original unsigned value with bit (BitsStored-1) set comes out as a large
+  // negative number. Trust the DICOM PixelRepresentation when it disagrees
+  // with the J2K stream and mask off the sign extension so high-intensity
+  // pixels are not clipped to black on display.
+  const dicomIsSigned = imageInfo?.pixelRepresentation === 1;
+  const bitsStored = imageInfo?.bitsStored;
+  const effectiveIsSigned =
+    imageInfo?.pixelRepresentation !== undefined
+      ? dicomIsSigned
+      : frameInfo.isSigned;
+  if (
+    frameInfo.isSigned &&
+    imageInfo?.pixelRepresentation === 0 &&
+    bitsStored &&
+    bitsStored < 16
+  ) {
+    const mask = (1 << bitsStored) - 1;
+    if (frameInfo.bitsPerSample > 8) {
+      const view = new Uint16Array(
+        decodedBufferInWASM.buffer,
+        decodedBufferInWASM.byteOffset,
+        decodedBufferInWASM.byteLength / 2
+      );
+      for (let i = 0; i < view.length; i++) {
+        view[i] = view[i] & mask;
+      }
+    } else {
+      for (let i = 0; i < decodedBufferInWASM.length; i++) {
+        decodedBufferInWASM[i] = decodedBufferInWASM[i] & mask;
+      }
+    }
+  }
 
   const imageOffset = `x: ${decoder.getImageOffset().x}, y: ${
     decoder.getImageOffset().y
@@ -118,11 +151,20 @@ async function decodeAsync(
     columns: frameInfo.width,
     rows: frameInfo.height,
     bitsPerPixel: frameInfo.bitsPerSample,
-    signed: frameInfo.isSigned,
+    signed: effectiveIsSigned,
     bytesPerPixel: imageInfo.bytesPerPixel,
     componentsPerPixel: frameInfo.componentCount,
   };
-  const pixelData = getPixelData(frameInfo, decodedBufferInWASM);
+
+  // The decoded buffer view points into the WASM heap, whose underlying
+  // ArrayBuffer can be huge (and can be detached / re-used by a subsequent
+  // decode). Slice out just our pixels so the returned typed array owns its
+  // own backing buffer — same pattern as decodeHTJ2K.
+  let pixelData = getPixelData(frameInfo, decodedBufferInWASM, effectiveIsSigned);
+  const { buffer: b, byteOffset, byteLength } = pixelData;
+  const pixelDataArrayBuffer = b.slice(byteOffset, byteOffset + byteLength);
+  // @ts-ignore
+  pixelData = new pixelData.constructor(pixelDataArrayBuffer);
 
   const encodeOptions = {
     imageOffset,
@@ -148,9 +190,9 @@ async function decodeAsync(
   };
 }
 
-function getPixelData(frameInfo, decodedBuffer) {
+function getPixelData(frameInfo, decodedBuffer, isSigned = frameInfo.isSigned) {
   if (frameInfo.bitsPerSample > 8) {
-    if (frameInfo.isSigned) {
+    if (isSigned) {
       return new Int16Array(
         decodedBuffer.buffer,
         decodedBuffer.byteOffset,
@@ -165,7 +207,7 @@ function getPixelData(frameInfo, decodedBuffer) {
     );
   }
 
-  if (frameInfo.isSigned) {
+  if (isSigned) {
     return new Int8Array(
       decodedBuffer.buffer,
       decodedBuffer.byteOffset,
