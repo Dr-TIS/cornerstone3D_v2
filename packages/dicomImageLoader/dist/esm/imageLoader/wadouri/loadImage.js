@@ -72,7 +72,6 @@ function loadImageFromDataSet(dataSet, imageId, frame = 0, sharedCacheKey, optio
         imagePromise.then((image) => {
             image = image;
             image.data = dataSet;
-            image.sharedCacheKey = sharedCacheKey;
             const end = new Date().getTime();
             image.loadTimeInMS = loadEnd - start;
             image.totalTimeInMS = end - start;

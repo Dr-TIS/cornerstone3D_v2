@@ -52,7 +52,7 @@ function postProcessDecodedPixels(imageFrame, options, start, decodeConfig) {
         const { rescaleSlope, rescaleIntercept } = options.preScale.scalingParameters;
         const minAfterScale = rescaleSlope * minBeforeScale + rescaleIntercept;
         const maxAfterScale = rescaleSlope * maxBeforeScale + rescaleIntercept;
-        invalidType = !validatePixelDataType(minAfterScale, maxAfterScale, type);
+        invalidType = !validatePixelDataType(minAfterScale, maxAfterScale, typedArrayConstructors[type]);
     }
     if (type && !invalidType) {
         pixelDataArray = _handleTargetBuffer(options, imageFrame, typedArrayConstructors, pixelDataArray);

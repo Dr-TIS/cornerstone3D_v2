@@ -125,8 +125,8 @@ function metaDataProvider(type, imageId) {
             ];
         }
         else {
-            rowCosines = [0, 1, 0];
-            columnCosines = [0, 0, -1];
+            rowCosines = [1, 0, 0];
+            columnCosines = [0, 1, 0];
             usingDefaultValues = true;
             imageOrientationPatient = [...rowCosines, ...columnCosines];
         }

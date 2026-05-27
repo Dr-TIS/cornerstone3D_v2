@@ -10,6 +10,11 @@ import { default as getMinMax } from '../shared/getMinMax';
 import { default as isColorImage } from '../shared/isColorImage';
 import { default as isJPEGBaseline8BitColor } from './isJPEGBaseline8BitColor';
 import { default as getPixelData } from './wadors/getPixelData';
+import { default as getScalingParameters } from './getScalingParameters';
+import { default as isColorConversionRequired } from './isColorConversionRequired';
+import { default as removeAFromRGBA } from './removeAFromRGBA';
+import { default as isModalityLUTForDisplay } from './isModalityLutForDisplay';
+import { default as setPixelDataType } from './setPixelDataType';
 import { internal } from './internal/index';
 declare const cornerstoneDICOMImageLoader: {
     convertRGBColorByPixel: typeof convertRGBColorByPixel;
@@ -80,6 +85,11 @@ declare const cornerstoneDICOMImageLoader: {
     getMinMax: typeof getMinMax;
     isColorImage: typeof isColorImage;
     isJPEGBaseline8BitColor: typeof isJPEGBaseline8BitColor;
+    getScalingParameters: typeof getScalingParameters;
+    isColorConversionRequired: typeof isColorConversionRequired;
+    removeAFromRGBA: typeof removeAFromRGBA;
+    isModalityLUTForDisplay: typeof isModalityLUTForDisplay;
+    setPixelDataType: typeof setPixelDataType;
     internal: {
         xhrRequest: typeof import("./internal/xhrRequest").default;
         streamRequest: typeof import("./internal/streamRequest").default;

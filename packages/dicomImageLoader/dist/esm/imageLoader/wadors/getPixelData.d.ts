@@ -1,12 +1,12 @@
 import type { CornerstoneWadoRsLoaderOptions } from './loadImage';
-declare function getPixelData(uri: string, imageId: string, mediaType?: string, options?: CornerstoneWadoRsLoaderOptions): import("packages/core/dist/esm/utilities/ProgressiveIterator").PromiseIterator<unknown> | import("../../types").LoaderXhrRequestPromise<{
+declare function getPixelData(uri: string, imageId: string, mediaType?: string, options?: CornerstoneWadoRsLoaderOptions): import("@cornerstonejs/core/utilities/ProgressiveIterator").PromiseIterator<unknown> | import("../../types").LoaderXhrRequestPromise<{
     contentType: string;
     pixelData: Uint8Array;
-    imageQualityStatus: import("packages/core/dist/esm/enums").ImageQualityStatus;
+    imageQualityStatus: import("@cornerstonejs/core/enums").ImageQualityStatus;
     percentComplete: number;
 }> | Promise<{
     contentType: string;
-    imageQualityStatus: import("packages/core/dist/esm/enums").ImageQualityStatus;
+    imageQualityStatus: import("@cornerstonejs/core/enums").ImageQualityStatus;
     pixelData: Uint8Array;
     extractDone?: undefined;
     tokenIndex?: undefined;

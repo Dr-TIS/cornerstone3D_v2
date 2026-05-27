@@ -34,8 +34,28 @@ async function decodeAsync(compressedImageFrame, imageInfo) {
     decoder.decode();
     const frameInfo = decoder.getFrameInfo();
     const decodedBufferInWASM = decoder.getDecodedBuffer();
-    const imageFrame = new Uint8Array(decodedBufferInWASM.length);
-    imageFrame.set(decodedBufferInWASM);
+    const dicomIsSigned = imageInfo?.pixelRepresentation === 1;
+    const bitsStored = imageInfo?.bitsStored;
+    const effectiveIsSigned = imageInfo?.pixelRepresentation !== undefined
+        ? dicomIsSigned
+        : frameInfo.isSigned;
+    if (frameInfo.isSigned &&
+        imageInfo?.pixelRepresentation === 0 &&
+        bitsStored &&
+        bitsStored < 16) {
+        const mask = (1 << bitsStored) - 1;
+        if (frameInfo.bitsPerSample > 8) {
+            const view = new Uint16Array(decodedBufferInWASM.buffer, decodedBufferInWASM.byteOffset, decodedBufferInWASM.byteLength / 2);
+            for (let i = 0; i < view.length; i++) {
+                view[i] = view[i] & mask;
+            }
+        }
+        else {
+            for (let i = 0; i < decodedBufferInWASM.length; i++) {
+                decodedBufferInWASM[i] = decodedBufferInWASM[i] & mask;
+            }
+        }
+    }
     const imageOffset = `x: ${decoder.getImageOffset().x}, y: ${decoder.getImageOffset().y}`;
     const numDecompositions = decoder.getNumDecompositions();
     const numLayers = decoder.getNumLayers();
@@ -51,11 +71,14 @@ async function decodeAsync(compressedImageFrame, imageInfo) {
         columns: frameInfo.width,
         rows: frameInfo.height,
         bitsPerPixel: frameInfo.bitsPerSample,
-        signed: frameInfo.isSigned,
+        signed: effectiveIsSigned,
         bytesPerPixel: imageInfo.bytesPerPixel,
         componentsPerPixel: frameInfo.componentCount,
     };
-    const pixelData = getPixelData(frameInfo, decodedBufferInWASM);
+    let pixelData = getPixelData(frameInfo, decodedBufferInWASM, effectiveIsSigned);
+    const { buffer: b, byteOffset, byteLength } = pixelData;
+    const pixelDataArrayBuffer = b.slice(byteOffset, byteOffset + byteLength);
+    pixelData = new pixelData.constructor(pixelDataArrayBuffer);
     const encodeOptions = {
         imageOffset,
         numDecompositions,
@@ -78,14 +101,14 @@ async function decodeAsync(compressedImageFrame, imageInfo) {
         ...encodedImageInfo,
     };
 }
-function getPixelData(frameInfo, decodedBuffer) {
+function getPixelData(frameInfo, decodedBuffer, isSigned = frameInfo.isSigned) {
     if (frameInfo.bitsPerSample > 8) {
-        if (frameInfo.isSigned) {
+        if (isSigned) {
             return new Int16Array(decodedBuffer.buffer, decodedBuffer.byteOffset, decodedBuffer.byteLength / 2);
         }
         return new Uint16Array(decodedBuffer.buffer, decodedBuffer.byteOffset, decodedBuffer.byteLength / 2);
     }
-    if (frameInfo.isSigned) {
+    if (isSigned) {
         return new Int8Array(decodedBuffer.buffer, decodedBuffer.byteOffset, decodedBuffer.byteLength);
     }
     return new Uint8Array(decodedBuffer.buffer, decodedBuffer.byteOffset, decodedBuffer.byteLength);

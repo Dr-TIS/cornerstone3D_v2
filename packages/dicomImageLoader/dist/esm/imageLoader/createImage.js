@@ -1,5 +1,4 @@
 import getMinMax from '../shared/getMinMax';
-import getPixelDataTypeFromMinMax from '../shared/getPixelDataTypeFromMinMax';
 import { canRenderFloatTextures, Enums, metaData, utilities, } from '@cornerstonejs/core';
 import convertColorSpace from './convertColorSpace';
 import isColorConversionRequired from './isColorConversionRequired';
@@ -8,35 +7,10 @@ import getImageFrame from './getImageFrame';
 import getScalingParameters from './getScalingParameters';
 import { getOptions } from './internal/options';
 import isColorImageFn from '../shared/isColorImage';
+import removeAFromRGBA from './removeAFromRGBA';
+import isModalityLUTForDisplay from './isModalityLutForDisplay';
+import setPixelDataType from './setPixelDataType';
 let lastImageIdDrawn = '';
-function isModalityLUTForDisplay(sopClassUid) {
-    return (sopClassUid !== '1.2.840.10008.5.1.4.1.1.12.1' &&
-        sopClassUid !== '1.2.840.10008.5.1.4.1.1.12.2.1');
-}
-function setPixelDataType(imageFrame) {
-    const minValue = imageFrame.smallestPixelValue;
-    const maxValue = imageFrame.largestPixelValue;
-    const TypedArray = getPixelDataTypeFromMinMax(minValue, maxValue);
-    if (TypedArray) {
-        const typedArray = new TypedArray(imageFrame.pixelData);
-        imageFrame.pixelData = typedArray;
-    }
-    else {
-        throw new Error('Could not apply a typed array to the pixel data');
-    }
-}
-function removeAFromRGBA(pixelData, targetBuffer) {
-    const numPixels = pixelData.length / 4;
-    let rgbIndex = 0;
-    let bufferIndex = 0;
-    for (let i = 0; i < numPixels; i++) {
-        targetBuffer[bufferIndex++] = pixelData[rgbIndex++];
-        targetBuffer[bufferIndex++] = pixelData[rgbIndex++];
-        targetBuffer[bufferIndex++] = pixelData[rgbIndex++];
-        rgbIndex++;
-    }
-    return targetBuffer;
-}
 function createImage(imageId, pixelData, transferSyntax, options = {}) {
     const useRGBA = options.useRGBA;
     options.preScale = {
