@@ -56,3 +56,9 @@ coverage/
 /playwright/.cache/
 /tests/test-results/
 /tests/playwright-report/
+
+# Local DICOM test fixtures (may contain PHI - do not commit)
+IMG_*.DCM
+IMG_*.DCM:Zone.Identifier
+before_fix.png
+after_fix.png
